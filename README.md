@@ -1,2 +1,11 @@
-# ms-users
-Users microservice
+
+# Frontend
+
+Frontend code for the application.
+
+## Running the code
+
+Run `npm i` to install the dependencies.
+
+Run `npm run dev` to start the development server.
+
