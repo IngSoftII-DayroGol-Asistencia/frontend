@@ -1,15 +1,14 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
-interface LoginPageProps {
-  onNavigate: (page: string) => void;
-}
+export function LoginPage() {
+  const navigate = useNavigate();
 
-export function LoginPage({ onNavigate }: LoginPageProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onNavigate('main');
+    navigate('/home'); // Usar navigate en lugar de onNavigate
   };
 
   return (
@@ -48,7 +47,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   type="button"
                   className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                 >
-                  Forgot?
+                  Forgot? 
                 </button>
               </div>
               <Input
@@ -69,7 +68,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
             <p className="text-sm text-muted-foreground">
               Don't have an account?{' '}
               <button
-                onClick={() => onNavigate('signup')}
+                onClick={() => navigate('/signup')} // Cambiar a navigate
                 className="text-blue-600 dark:text-blue-400 hover:underline"
               >
                 Sign up
