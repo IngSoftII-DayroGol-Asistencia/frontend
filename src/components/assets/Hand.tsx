@@ -16,9 +16,9 @@ export default function Hand({cards, title, handValue, hideFirstCard = false}: H
     return (
         <div>
             {/* Hand component content */}
-            <div className="p-4">
-                <h2 className="text-2xl mb-2">{title}: {displayValue}</h2>
-                <div className="flex flex-col sm:flex-row gap-1">
+            <div className="p-2">
+                <h2 className="text-2xl mb-2 text-white font-bold">{title}: <span className="text-yellow-300">{displayValue}</span></h2>
+                <div className="flex flex-col sm:flex-row gap-2">
                     {cards.map((card, index) => (
                         <Card 
                             key={index} 
