@@ -1,6 +1,8 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { LoginPage } from "./components/LoginPage";
 import { SignupPage } from "./components/SignupPage";
+import { NotFound } from "./pages/NotFound";
 import { AppNavbar } from "./components/AppNavbar";
 import { AppSidebar } from "./components/AppSidebar";
 import { MobileSidebar } from "./components/MobileSidebar";
@@ -9,8 +11,8 @@ import { VideoCallContent } from "./components/VideoCallContent";
 import { DashboardContent } from "./components/DashboardContent";
 import { MessagesContent } from "./components/MessagesContent";
 
-export default function App() {
-  const [currentPage, setCurrentPage] = useState<string>('login');
+// Componente para el layout principal (después del login)
+function MainLayout() {
   const [darkMode, setDarkMode] = useState(false);
   const [activeSection, setActiveSection] = useState('feed');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -18,26 +20,18 @@ export default function App() {
 
   useEffect(() => {
     if (darkMode) {
-      document.documentElement.classList.add('dark');
+      document. documentElement.classList.add('dark');
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement. classList.remove('dark');
     }
   }, [darkMode]);
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+  const toggleDarkMode = () => setDarkMode(!darkMode);
+  const toggleSidebarCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
+  const toggleMobileSidebar = () => setMobileSidebarOpen(!mobileSidebarOpen);
 
   const handleLogout = () => {
-    setCurrentPage('login');
-  };
-
-  const toggleSidebarCollapse = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-
-  const toggleMobileSidebar = () => {
-    setMobileSidebarOpen(!mobileSidebarOpen);
+    window.location.href = '/';
   };
 
   const renderContent = () => {
@@ -53,26 +47,6 @@ export default function App() {
     }
   };
 
-  if (currentPage === 'login') {
-    return (
-      <div className={darkMode ? 'dark' : ''}>
-        <div className="size-full">
-          <LoginPage onNavigate={setCurrentPage} />
-        </div>
-      </div>
-    );
-  }
-
-  if (currentPage === 'signup') {
-    return (
-      <div className={darkMode ? 'dark' : ''}>
-        <div className="size-full">
-          <SignupPage onNavigate={setCurrentPage} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className="size-full flex flex-col bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-950 dark:via-blue-950/30 dark:to-purple-950/30">
@@ -84,7 +58,6 @@ export default function App() {
         />
         
         <div className="flex-1 flex overflow-hidden">
-          {/* Desktop Sidebar */}
           <div className="hidden md:block">
             <AppSidebar 
               activeSection={activeSection} 
@@ -94,7 +67,6 @@ export default function App() {
             />
           </div>
 
-          {/* Mobile Sidebar */}
           <MobileSidebar
             activeSection={activeSection}
             onSectionChange={setActiveSection}
@@ -108,5 +80,19 @@ export default function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Componente principal con las rutas
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/home" element={<MainLayout />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

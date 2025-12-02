@@ -1,15 +1,14 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
-interface SignupPageProps {
-  onNavigate: (page: string) => void;
-}
+export function SignupPage() {
+  const navigate = useNavigate();
 
-export function SignupPage({ onNavigate }: SignupPageProps) {
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onNavigate('main');
+    e. preventDefault();
+    navigate('/home'); // Redirigir al home después de registrarse
   };
 
   return (
@@ -95,7 +94,7 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
             <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
               <button
-                onClick={() => onNavigate('login')}
+                onClick={() => navigate('/')} // Ir al login
                 className="text-blue-600 dark:text-blue-400 hover:underline"
               >
                 Sign in
