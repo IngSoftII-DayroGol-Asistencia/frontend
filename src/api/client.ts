@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.API_BASE_URL ?? "";
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 interface RequestConfig extends RequestInit {
   params?: Record<string, string>;

@@ -4,14 +4,12 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import PhoneInputField from "./assets/PhoneInput";
 import { useState } from "react";
+import { authService } from "../api/services/auth.service";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTitleAlertDialogContent } from "./ui/alert-dialog";
 
 export function SignupPage() {
   const navigate = useNavigate();
 
-  /**
-   * 
-   * @todo handle submit on sign up form
-   */
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -21,7 +19,8 @@ export function SignupPage() {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [errors, setErrors] = useState<Record<string, string>>({});
-
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [showError, setShowError] = useState(false);
 
 
   const passwordValidator = (confirm: string): string | boolean => {
@@ -46,11 +45,21 @@ export function SignupPage() {
     return true;
   }
 
+  const dateValidator = (dateStr: string): boolean => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    if (Math.abs(date.getFullYear() - now.getFullYear()) < 14 || isNaN(date.getTime()) || date > now) {
+      return false;
+    }
+    return true;
+  }
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
     if (!firstName.trim()) {newErrors.firstName = "First name is required";}
     if (!lastName.trim()) {newErrors.lastName = "Last name is required";}
     if (!dateOfBirth) {newErrors.dateOfBirth = "Date of birth is required";}
+    if (dateOfBirth && !dateValidator(dateOfBirth)) {newErrors.dateOfBirth = "Invalid date of birth, you must be at least 14";}
     if (!email.trim()) {newErrors.email = "Email is required";}
     if (!phoneNumber || phoneNumber.trim().length === 0) {newErrors.phoneNumber = "Phone number is required";}
     const passwordValidation = passwordValidator(confirmPassword);
@@ -61,7 +70,7 @@ export function SignupPage() {
     return Object.keys(newErrors).length === 0;
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
       return;
@@ -70,13 +79,19 @@ export function SignupPage() {
     const formData = {
     firstName,
     lastName,
-    dateOfBirth,
+    dateOfBirth: new Date(dateOfBirth).toISOString(),
     email,
-    phoneNumber,
+    phone: phoneNumber,
     password
     };
-    console.warn('Form Data:', formData);
-    void navigate('/home'); // Redirigir al home después de registrarse
+    try {
+      const response = await authService.registerUser(formData);
+      console.warn(response);
+      setShowSuccess(true);
+    } catch (error) {
+      console.error("Error during registration:", error);
+      setShowError(true);
+    }
   };
 
   return (
@@ -217,6 +232,43 @@ export function SignupPage() {
           </div>
         </div>
       </div>
+          {/* Diálogo de éxito */}
+      <AlertDialog open={showSuccess} onOpenChange={setShowSuccess}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¡Cuenta creada! </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tu cuenta ha sido creada de forma correcta. Ya puedes iniciar sesión. 
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => {
+              setShowSuccess(false)
+              void navigate('/');
+            }}>
+              Aceptar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+        {/* Diálogo de Error */}
+      <AlertDialog open={showError} onOpenChange={setShowError}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¡Cuenta creada! </AlertDialogTitle>
+            <AlertDialogDescription>
+              Error creando la cuenta: su correo o numero ya esta registrado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => {
+              setShowError(false)
+            }}>
+              Aceptar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
