@@ -1,14 +1,14 @@
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { combinations } from "../components/assets/CardDeck";
 import Hand from "../components/assets/Hand";
 
 export function NotFound() {
 
     const [gameDeck, setGameDeck] = useState(combinations);
-    const [playerHand, setPlayerHand] = useState<{suit: string; rank: string}[]>([]);
-    const [dealerHand, setDealerHand] = useState<{suit: string; rank: string}[]>([]);
+    const [playerHand, setPlayerHand] = useState<Array<{suit: string; rank: string}>>([]);
+    const [dealerHand, setDealerHand] = useState<Array<{suit: string; rank: string}>>([]);
     const [gameOver, setGameOver] = useState(false);
     const [result, setResult] = useState({ type: "", message: "" });
     const [newGame, setNewGame] = useState(false);
@@ -51,9 +51,9 @@ export function NotFound() {
     const playerStand = () => {
         setDealerCardHidden(false); 
         setGameOver(true);
-        let newHand = [...dealerHand];
+        const newHand = [...dealerHand];
         let dealerValue = calculateHandValue(newHand);
-        let userHand = calculateHandValue(playerHand);
+        const userHand = calculateHandValue(playerHand);
         
         while (dealerValue < 17) {
             const card = getRandomCardFromDeck();
@@ -73,7 +73,7 @@ export function NotFound() {
         }
     }
 
-    const calculateHandValue = (hand: {suit: string; rank: string}[]) => {
+    const calculateHandValue = (hand: Array<{suit: string; rank: string}>) => {
         let value = 0;
         let aceCount = 0;
         hand.forEach((card) => {
@@ -93,10 +93,6 @@ export function NotFound() {
         return value;
     }
 
-    const dealCardToDealer = () => {
-        const card = getRandomCardFromDeck();
-        setDealerHand((prevHand) => [...prevHand, card]);
-    }
 
     const handleGameOver = (result: {type: string; message: string}) => {
         setGameOver(true);
@@ -208,22 +204,22 @@ export function NotFound() {
                     <div className="flex gap-2 flex-wrap justify-center">
                         <Button 
                             className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white text-lg px-4 py-2 rounded-xl shadow-lg"
-                            onClick={() => betMore(10)}
                             disabled={chips < 10}
+                            onClick={() => betMore(10)}
                         >
                             +$10
                         </Button>
                         <Button 
                             className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white text-lg px-4 py-2 rounded-xl shadow-lg"
-                            onClick={() => betMore(50)}
                             disabled={chips < 50}
+                            onClick={() => betMore(50)}
                         >
                             +$50
                         </Button>
                         <Button 
                             className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white text-lg px-4 py-2 rounded-xl shadow-lg"
-                            onClick={() => betMore(100)}
                             disabled={chips < 100}
+                            onClick={() => betMore(100)}
                         >
                             +$100
                         </Button>
@@ -231,22 +227,22 @@ export function NotFound() {
                     <div className="flex gap-2 flex-wrap justify-center">
                         <Button 
                             className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white text-lg px-4 py-2 rounded-xl shadow-lg"
-                            onClick={() => betLess(10)}
                             disabled={bet < 10}
+                            onClick={() => betLess(10)}
                         >
                             -$10
                         </Button>
                         <Button 
                             className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white text-lg px-4 py-2 rounded-xl shadow-lg"
-                            onClick={() => betLess(50)}
                             disabled={bet < 50}
+                            onClick={() => betLess(50)}
                         >
                             -$50
                         </Button>
                         <Button 
                             className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white text-lg px-4 py-2 rounded-xl shadow-lg"
-                            onClick={() => betLess(100)}
                             disabled={bet < 100}
+                            onClick={() => betLess(100)}
                         >
                             -$100
                         </Button>
@@ -255,8 +251,8 @@ export function NotFound() {
                         className={`${bet >= 50 
                             ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700' 
                             : 'bg-gray-400 cursor-not-allowed'} text-white text-xl px-8 py-3 mt-4 rounded-xl shadow-lg font-bold`}
-                        onClick={confirmBet}
                         disabled={bet < 50}
+                        onClick={confirmBet}
                     >
                         {bet >= 50 ? `¡Jugar! (Apuesta: $${bet})` : 'Apuesta mínima: $50'}
                     </Button>
@@ -308,14 +304,14 @@ export function NotFound() {
                     </div>
                     <div className="flex flex-col md:flex-row justify-center items-center gap-8 mt-6">
                         <div className="bg-emerald-700 dark:bg-emerald-800 rounded-xl p-4 border-4 border-emerald-900 shadow-xl">
-                            <Hand cards={playerHand} title="👤 Jugador" handValue={calculateHandValue(playerHand)} />
+                            <Hand cards={playerHand} handValue={calculateHandValue(playerHand)} title="👤 Jugador" />
                         </div>
                         <div className="bg-emerald-700 dark:bg-emerald-800 rounded-xl p-4 border-4 border-emerald-900 shadow-xl">
                             <Hand 
                                 cards={dealerHand} 
-                                title="Dealer" 
-                                handValue={calculateHandValue(dealerHand)}
+                                handValue={calculateHandValue(dealerHand)} 
                                 hideFirstCard={dealerCardHidden}
+                                title="Dealer"
                             />
                         </div>
                     </div>

@@ -2,13 +2,81 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import PhoneInputField from "./assets/PhoneInput";
+import { useState } from "react";
 
 export function SignupPage() {
   const navigate = useNavigate();
 
+  /**
+   * 
+   * @todo handle submit on sign up form
+   */
+
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [dateOfBirth, setDateOfBirth] = useState("");
+    const [email, setEmail] = useState("");
+    const [phoneNumber, setPhoneNumber] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+
+
+  const passwordValidator = (confirm: string): string | boolean => {
+    if (password !== confirm) {
+      return "Password don't match" 
+    }
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long"
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must contain at least one uppercase letter"
+    }
+    if (!/[a-z]/.test(password)) {
+      return "Password must contain at least one lowercase letter"
+    }
+    if (!/[0-9]/.test(password)) {
+      return "Password must contain at least one number"
+    }
+    if (!/[!@#$%^&*]/.test(password)) {
+      return "Password must contain at least one special character"
+    } 
+    return true;
+  }
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    if (!firstName.trim()) {newErrors.firstName = "First name is required";}
+    if (!lastName.trim()) {newErrors.lastName = "Last name is required";}
+    if (!dateOfBirth) {newErrors.dateOfBirth = "Date of birth is required";}
+    if (!email.trim()) {newErrors.email = "Email is required";}
+    if (!phoneNumber || phoneNumber.trim().length === 0) {newErrors.phoneNumber = "Phone number is required";}
+    const passwordValidation = passwordValidator(confirmPassword);
+    if (passwordValidation !== true) {
+      newErrors.password = passwordValidation as string;
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
-    e. preventDefault();
-    navigate('/home'); // Redirigir al home después de registrarse
+    e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
+
+    const formData = {
+    firstName,
+    lastName,
+    dateOfBirth,
+    email,
+    phoneNumber,
+    password
+    };
+    console.warn('Form Data:', formData);
+    void navigate('/home'); // Redirigir al home después de registrarse
   };
 
   return (
@@ -36,9 +104,14 @@ export function SignupPage() {
                   id="firstName"
                   type="text"
                   placeholder="John"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                   className="backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
                   required
                 />
+                {errors.firstName && (
+          <p className="text-red-500 text-sm">{errors.firstName}</p>
+        )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name</Label>
@@ -46,9 +119,14 @@ export function SignupPage() {
                   id="lastName"
                   type="text"
                   placeholder="Doe"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
                   className="backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
                   required
                 />
+                {errors.lastName && (
+          <p className="text-red-500 text-sm">{errors.lastName}</p>
+        )}
               </div>
             </div>
             
@@ -58,11 +136,40 @@ export function SignupPage() {
                 id="email"
                 type="email"
                 placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
                 required
               />
+              {errors.email && (
+                <p className="text-red-500 text-sm">{errors.email}</p>
+        )}
             </div>
             
+            <div className="space-y-2">
+              <Label htmlFor="birthDate">Birthdate</Label>
+              <Input
+                id="birthDate"
+                type="date"
+                placeholder="mm/dd/yyyy"
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+                className="backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
+                required
+              />
+              {errors.dateOfBirth && (
+                <p className="text-red-500 text-sm">{errors.dateOfBirth}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone number</Label>
+              <PhoneInputField
+              value={phoneNumber}
+              onChange={setPhoneNumber}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -70,6 +177,8 @@ export function SignupPage() {
                 type="password"
                 placeholder="••••••••"
                 className="backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
@@ -81,8 +190,13 @@ export function SignupPage() {
                 type="password"
                 placeholder="••••••••"
                 className="backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
+                value={confirmPassword}
+                onChange={(e) => {setConfirmPassword(e.target.value)}}
                 required
               />
+              {errors.password && (
+                <p className="text-red-500 text-sm">{errors.password}</p>
+        )}
             </div>
             
             <Button type="submit" className="w-full">
