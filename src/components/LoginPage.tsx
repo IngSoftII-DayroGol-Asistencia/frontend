@@ -28,13 +28,23 @@ export function LoginPage() {
     return true;
   }
 
+    const getUserInfo = async () => {
+      const data: string | null = localStorage.getItem('currentUser');
+      if (!data) {
+        await authService.getCurrentUser();
+      }
+      return null;
+    };
+
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
       return;
     }
     authService.loginUser({ email, password })
-      .then(() => {
+      .then(async () => {
+        await getUserInfo();
         void navigate('/home');
       })
       .catch((error) => {

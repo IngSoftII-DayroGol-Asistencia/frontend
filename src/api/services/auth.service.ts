@@ -1,7 +1,7 @@
 import { apiClient } from "../client";
 import type { UserLoginInput, UserLoginResponse, UserRegistrationInput, UserRegistrationResponse } from "../../interfaces/auth";
 import { ENDPOINTS } from "../endpoints";
-import { register } from "module";
+import type { UserProfileResponse } from "../../interfaces/user";
 
 export const authService ={
     async registerUser(userData: UserRegistrationInput): Promise<UserRegistrationResponse> {
@@ -21,7 +21,21 @@ export const authService ={
         const response = await apiClient.post<void>(ENDPOINTS.auth.auth.logout().url);
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('currentUser');
+        return response;
+    },
+
+    async refreshToken(){
+        const response = await apiClient.post<UserLoginResponse>(ENDPOINTS.auth.auth.refresh().url, {refreshToken: localStorage.getItem('refreshToken')});
+        localStorage.setItem('token', response.accessToken);
+        localStorage.setItem('refreshToken', response.refreshToken);
+        return response;
+    },
+
+    async getCurrentUser(){
+        const response = await apiClient.get<UserProfileResponse>(ENDPOINTS.auth.profile.getMyProfile().url);
+        localStorage.setItem('currentUser', JSON.stringify(response));
+        console.warn('Current User:', response);
         return response;
     }
-    
 }

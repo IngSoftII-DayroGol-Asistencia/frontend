@@ -11,6 +11,7 @@ import { VideoCallContent } from "./components/VideoCallContent";
 import { DashboardContent } from "./components/DashboardContent";
 import { MessagesContent } from "./components/MessagesContent";
 import { authService } from "./api/services/auth.service";
+import { MyProfile, Profile } from "./components/MyProfile";
 
 // Componente para el layout principal (después del login)
 function MainLayout() {
@@ -95,6 +96,7 @@ export default function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/home" element={<MainLayout />} />
           <Route path="*" element={<NotFound />} />
+          <Route path="/profile" element={<MyProfile />} />
         </Routes>
       </div>
     </BrowserRouter>
