@@ -5,7 +5,7 @@ import { Label } from "./ui/label";
 import PhoneInputField from "./assets/PhoneInput";
 import { useState } from "react";
 import { authService } from "../api/services/auth.service";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTitleAlertDialogContent } from "./ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle} from "./ui/alert-dialog";
 
 export function SignupPage() {
   const navigate = useNavigate();
@@ -236,9 +236,9 @@ export function SignupPage() {
       <AlertDialog open={showSuccess} onOpenChange={setShowSuccess}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¡Cuenta creada! </AlertDialogTitle>
+            <AlertDialogTitle>Created Account </AlertDialogTitle>
             <AlertDialogDescription>
-              Tu cuenta ha sido creada de forma correcta. Ya puedes iniciar sesión. 
+              Your account has been successfully created. You can now log in.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -246,7 +246,7 @@ export function SignupPage() {
               setShowSuccess(false)
               void navigate('/');
             }}>
-              Aceptar
+              Ok
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -255,16 +255,16 @@ export function SignupPage() {
       <AlertDialog open={showError} onOpenChange={setShowError}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¡Cuenta creada! </AlertDialogTitle>
+            <AlertDialogTitle>Account Creation Error</AlertDialogTitle>
             <AlertDialogDescription>
-              Error creando la cuenta: su correo o numero ya esta registrado.
+              Error creating the account: your email or phone number is already registered.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => {
               setShowError(false)
             }}>
-              Aceptar
+              Ok
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
