@@ -22,6 +22,7 @@ interface AppNavbarProps {
 
 export function AppNavbar({ darkMode, toggleDarkMode, onLogout, onMobileMenuToggle }: AppNavbarProps) {
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  
 
   return (
     <>

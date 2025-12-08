@@ -15,7 +15,13 @@ export const authService ={
         localStorage.setItem('token', response.accessToken);
         localStorage.setItem('refreshToken', response.refreshToken);
         return response;
-    }
+    },
 
+    async logoutUser(){
+        const response = await apiClient.post<void>(ENDPOINTS.auth.auth.logout().url);
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        return response;
+    }
     
 }

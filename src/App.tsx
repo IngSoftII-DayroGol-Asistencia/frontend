@@ -10,6 +10,7 @@ import { FeedContent } from "./components/FeedContent";
 import { VideoCallContent } from "./components/VideoCallContent";
 import { DashboardContent } from "./components/DashboardContent";
 import { MessagesContent } from "./components/MessagesContent";
+import { authService } from "./api/services/auth.service";
 
 // Componente para el layout principal (después del login)
 function MainLayout() {
@@ -30,7 +31,8 @@ function MainLayout() {
   const toggleSidebarCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
   const toggleMobileSidebar = () => setMobileSidebarOpen(!mobileSidebarOpen);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await authService.logoutUser();
     window.location.href = '/';
   };
 
