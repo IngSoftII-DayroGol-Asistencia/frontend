@@ -113,7 +113,7 @@ export function AppNavbar({ darkMode, toggleDarkMode, onLogout, onMobileMenuTogg
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-white/20 dark:border-gray-700/50">
-              <DropdownMenuLabel> {`${enterpriseData?.name ?? ""} \n ID${enterpriseData?.id ?? ""}`} </DropdownMenuLabel>
+              <DropdownMenuLabel> {`${enterpriseData?.name ?? ""} \n ${enterpriseData?.id ?? ""}`} </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => window.location.href = '/profile'}>Profile</DropdownMenuItem>
               <DropdownMenuItem>Settings</DropdownMenuItem>
