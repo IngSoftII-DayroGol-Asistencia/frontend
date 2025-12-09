@@ -37,5 +37,11 @@ export const authService ={
         localStorage.setItem('currentUser', JSON.stringify(response));
         console.warn('Current User:', response);
         return response;
+    },
+
+    async updateMyUser(userData: UserProfileResponse){
+        const response = await apiClient.patch<UserProfileResponse>(ENDPOINTS.auth.profile.updateMyProfile().url, userData);
+        localStorage.setItem('currentUser', JSON.stringify(response));
+        return response;
     }
 }
