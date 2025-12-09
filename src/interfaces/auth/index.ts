@@ -1,4 +1,5 @@
 export * from './register.interface';
 export * from './login.interface';
-export * from './user.interface';
+export * from './userEnterprise.interface';
 export * from './logout.interface';
+export * from './enterpriseCreation.interface';

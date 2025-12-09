@@ -5,6 +5,8 @@ import { Label } from "./ui/label";
 import { useState } from "react";
 import { authService } from "../api/services/auth.service";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
+import type { UserProfileResponse } from "../interfaces/user";
+import { UserEnterpriseResponse } from "../interfaces/auth";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -32,6 +34,10 @@ export function LoginPage() {
       const data: string | null = localStorage.getItem('currentUser');
       if (!data) {
         await authService.getCurrentUser();
+        const currentUser: UserProfileResponse = JSON.parse(localStorage.getItem('currentUser') ?? '') as UserProfileResponse;
+        await authService.getUserRelationEnterprise(currentUser.userId);
+        const userRelationEnterprise: UserEnterpriseResponse = JSON.parse(localStorage.getItem('userRelationEnterprise') ?? '') as UserEnterpriseResponse;
+        await authService.getEnterprise(userRelationEnterprise.enterprises[0].enterpriseId);
       }
       return null;
     };

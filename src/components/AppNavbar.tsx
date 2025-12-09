@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Search, Bell, Moon, Sun, Menu } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bell, Menu, Moon, Search, Sun } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -13,6 +13,7 @@ import {
 } from "./ui/dropdown-menu";
 import { SearchModal } from "./SearchModal";
 import type { UserProfileResponse } from "../interfaces/user";
+import { EnterpriseCreationResponse } from "../interfaces/auth";
 
 interface AppNavbarProps {
   darkMode: boolean;
@@ -24,6 +25,10 @@ interface AppNavbarProps {
 export function AppNavbar({ darkMode, toggleDarkMode, onLogout, onMobileMenuToggle }: AppNavbarProps) {
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [profileData, setProfileData] = useState<UserProfileResponse | null>(null);
+  const [enterpriseData, setEnterpriseData] = useState<EnterpriseCreationResponse | null>(() => {
+    const stored = localStorage.getItem('currentEnterprise');
+    return stored ? (JSON.parse(stored) as EnterpriseCreationResponse) : null;
+  });
 
   useEffect(() => {
     const data: string = localStorage.getItem('currentUser') ?? '';
@@ -108,7 +113,7 @@ export function AppNavbar({ darkMode, toggleDarkMode, onLogout, onMobileMenuTogg
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-white/20 dark:border-gray-700/50">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel> {`${enterpriseData?.name ?? ""} \n ID${enterpriseData?.id ?? ""}`} </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => window.location.href = '/profile'}>Profile</DropdownMenuItem>
               <DropdownMenuItem>Settings</DropdownMenuItem>

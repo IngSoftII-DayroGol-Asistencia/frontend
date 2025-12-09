@@ -5,8 +5,8 @@ import { authService } from "../api/services/auth.service";
 import { AppSidebar } from "./AppSidebar";
 import type { Education, Experience, LanguageProficiency, Skill, UserProfileResponse } from "../interfaces/user";
 import { Calendar, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-// --- COMPONENTE AUXILIAR (DEFINIDO AFUERA PARA EVITAR BUGS) ---
 interface InlineInputProps {
     name: string;
     value: string | undefined | null;
@@ -32,8 +32,6 @@ const InlineInput = ({ name, value, placeholder, isEditing, onChange, className 
     );
 };
 
-// --- HELPER PARA FECHAS ---
-// Convierte ISO (2023-01-01T00:00...) a YYYY-MM-DD para el input type="date"
 const formatDateForInput = (isoDate: string | null | undefined): string => {
     if (!isoDate) {return "";}
     return isoDate.split("T")[0];
@@ -53,6 +51,12 @@ export function MyProfile() {
     const [newLangName, setNewLangName] = useState("");
     const [newLangProf, setNewLangProf] = useState("Intermediate");
 
+    const navigate = useNavigate();
+
+    const handleSidebarNavigation = (section: string) => {
+        void navigate(`/${section}`); 
+    };
+
     const toggleDarkMode = () => setDarkMode(!darkMode);
     const toggleSidebarCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
     const toggleMobileSidebar = () => setMobileSidebarOpen(!mobileSidebarOpen);
@@ -67,6 +71,7 @@ export function MyProfile() {
         if (data) {
             try {
                 const parsedData: UserProfileResponse = JSON.parse(data) as UserProfileResponse;
+				console.warn( parsedData);
                 setProfileData(parsedData);
                 setFormData(parsedData);
             } catch (error) {
@@ -75,7 +80,6 @@ export function MyProfile() {
         }
     }, []);
 
-    // --- MANEJADORES GENERALES ---
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         if (formData) {
@@ -104,12 +108,10 @@ export function MyProfile() {
         }
     };
 
-    // --- LÓGICA ESPECIAL PARA EXPERIENCIA ---
     const handleExperienceChange = (index: number, field: keyof Experience, value: string | boolean | null) => {
         if (!formData?.experiences) {return;}
         const newExperiences = [...formData.experiences];
         
-        // Lógica especial para fechas
         if (field === 'isCurrent' && value === true) {
             newExperiences[index] = { ...newExperiences[index], isCurrent: true, endDate: null };
         } else {
@@ -147,7 +149,6 @@ export function MyProfile() {
         setFormData({ ...formData, experiences: newExp });
     };
 
-    // --- LÓGICA ESPECIAL PARA EDUCACIÓN ---
     const handleEducationChange = (index: number, field: keyof Education, value: string | boolean | null) => {
         if (!formData?.educations) {return;}
         const newEdu = [...formData.educations];
@@ -155,7 +156,6 @@ export function MyProfile() {
         if (field === 'isCurrent' && value === true) {
             newEdu[index] = { ...newEdu[index], isCurrent: true, endDate: null };
         } else {
-            // @ts-ignore
             newEdu[index] = { ...newEdu[index], [field]: value };
         }
 
@@ -188,7 +188,6 @@ export function MyProfile() {
         setFormData({ ...formData, educations: newEdu });
     };
 
-    // --- LÓGICA SKILLS & IDIOMAS (Igual que antes) ---
     const handleRemoveSkill = (indexToRemove: number) => {
         if (!formData) {return;}
         const updatedSkills = formData.skills ? formData.skills.filter((_, index) => index !== indexToRemove) : [];
@@ -201,7 +200,7 @@ export function MyProfile() {
             id: Date.now().toString(),
             profileId: formData.id,
             name: newSkillName,
-            proficiency: "Junior",
+            proficiency: "JUNIOR",
             yearsOfExperience: 1,
             endorsements: 0,
             createdAt: new Date().toISOString(),
@@ -243,12 +242,11 @@ export function MyProfile() {
                 onLogout={handleLogout}
                 onMobileMenuToggle={toggleMobileSidebar}
             />
-
-            <div className="hidden md:block fixed left-0 top-16">
+            <div className="hidden md:block fixed left-0 top-0.5 h-screen z-50">
                 <AppSidebar
                     activeSection={activeSection}
                     collapsed={sidebarCollapsed}
-                    onSectionChange={setActiveSection}
+                    onSectionChange={handleSidebarNavigation}
                     onToggleCollapse={toggleSidebarCollapse}
                 />
             </div>

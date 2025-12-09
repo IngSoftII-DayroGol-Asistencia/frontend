@@ -11,14 +11,14 @@ interface AppSidebarProps {
 
 export function AppSidebar({ activeSection, onSectionChange, collapsed, onToggleCollapse }: AppSidebarProps) {
   const sections = [
-    { id: 'feed', icon: Home, label: 'Feed' },
+    { id: 'home', icon: Home, label: 'Feed' },
     { id: 'messages', icon: MessageSquare, label: 'Messages' },
     { id: 'video', icon: Video, label: 'Video Calls' },
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   ];
 
   return (
-    <aside className={`backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-r border-white/20 dark:border-gray-700/50 flex flex-col transition-all duration-300 ${
+    <aside className={`h-full pt-24 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-r border-white/20 dark:border-gray-700/50 flex flex-col transition-all duration-300 ${
       collapsed ? 'w-16' : 'w-64'
     }`}>
       <div className="flex-1 p-3 space-y-2">
