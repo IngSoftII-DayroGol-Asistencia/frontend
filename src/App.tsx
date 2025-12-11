@@ -10,6 +10,10 @@ import { FeedContent } from "./components/FeedContent";
 import { VideoCallContent } from "./components/VideoCallContent";
 import { DashboardContent } from "./components/DashboardContent";
 import { MessagesContent } from "./components/MessagesContent";
+import { authService } from "./api/services/auth.service";
+import { MyProfile, Profile } from "./components/MyProfile";
+import { UserEnterpriseResponse } from "./interfaces/auth";
+import { RegisterEnterprise } from "./components/RegisterEnterprise";
 
 // Componente para el layout principal (después del login)
 function MainLayout() {
@@ -30,7 +34,20 @@ function MainLayout() {
   const toggleSidebarCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
   const toggleMobileSidebar = () => setMobileSidebarOpen(!mobileSidebarOpen);
 
-  const handleLogout = () => {
+  const validateRelationEnterprise = () => {
+    const data: UserEnterpriseResponse = JSON.parse(localStorage.getItem('userRelationEnterprise') ?? '') as UserEnterpriseResponse;
+     if (data.enterprises.length === 0) {
+       window.location.href = '/no-enterprise';
+     }
+  }
+
+  useEffect(() => {
+    validateRelationEnterprise();
+  }, []);
+
+
+  const handleLogout = async () => {
+    await authService.logoutUser();
     window.location.href = '/';
   };
 
@@ -87,12 +104,16 @@ function MainLayout() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/home" element={<MainLayout />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <div className="h-screen">
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/home" element={<MainLayout />} />
+          <Route path="*" element={<NotFound />} />
+          <Route path="/profile" element={<MyProfile />} />
+          <Route path="/no-enterprise" element={<RegisterEnterprise />} />
+        </Routes>
+      </div>
     </BrowserRouter>
   );
 }
