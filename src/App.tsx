@@ -14,6 +14,9 @@ import { authService } from "./api/services/auth.service";
 import { MyProfile, Profile } from "./components/MyProfile";
 import { UserEnterpriseResponse } from "./interfaces/auth";
 import { RegisterEnterprise } from "./components/RegisterEnterprise";
+import { Roles } from "./components/Roles";
+import { JoinRequest } from "./components/JoinRequest";
+import { AnyProfile } from "./components/AnyProfile";
 
 // Componente para el layout principal (después del login)
 function MainLayout() {
@@ -24,9 +27,9 @@ function MainLayout() {
 
   useEffect(() => {
     if (darkMode) {
-      document. documentElement.classList.add('dark');
+      document.documentElement.classList.add('dark');
     } else {
-      document.documentElement. classList.remove('dark');
+      document.documentElement.classList.remove('dark');
     }
   }, [darkMode]);
 
@@ -36,9 +39,9 @@ function MainLayout() {
 
   const validateRelationEnterprise = () => {
     const data: UserEnterpriseResponse = JSON.parse(localStorage.getItem('userRelationEnterprise') ?? '') as UserEnterpriseResponse;
-     if (data.enterprises.length === 0) {
-       window.location.href = '/no-enterprise';
-     }
+    if (data.enterprises.length === 0) {
+      window.location.href = '/no-enterprise';
+    }
   }
 
   useEffect(() => {
@@ -67,17 +70,17 @@ function MainLayout() {
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className="size-full flex flex-col bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-950 dark:via-blue-950/30 dark:to-purple-950/30">
-        <AppNavbar 
-          darkMode={darkMode} 
-          toggleDarkMode={toggleDarkMode} 
+        <AppNavbar
+          darkMode={darkMode}
+          toggleDarkMode={toggleDarkMode}
           onLogout={handleLogout}
           onMobileMenuToggle={toggleMobileSidebar}
         />
-        
+
         <div className="flex-1 flex overflow-hidden">
           <div className="hidden md:block">
-            <AppSidebar 
-              activeSection={activeSection} 
+            <AppSidebar
+              activeSection={activeSection}
               onSectionChange={setActiveSection}
               collapsed={sidebarCollapsed}
               onToggleCollapse={toggleSidebarCollapse}
@@ -90,7 +93,7 @@ function MainLayout() {
             open={mobileSidebarOpen}
             onOpenChange={setMobileSidebarOpen}
           />
-          
+
           <main className="flex-1 overflow-y-auto">
             {renderContent()}
           </main>
@@ -99,6 +102,7 @@ function MainLayout() {
     </div>
   );
 }
+
 
 // Componente principal con las rutas
 export default function App() {
@@ -111,7 +115,10 @@ export default function App() {
           <Route path="/home" element={<MainLayout />} />
           <Route path="*" element={<NotFound />} />
           <Route path="/profile" element={<MyProfile />} />
+          <Route path="/roles" element={<Roles />} />
           <Route path="/no-enterprise" element={<RegisterEnterprise />} />
+          <Route path="/manage-join-request" element={<JoinRequest />} />
+          <Route path="/user-profile" element={<AnyProfile />} />
         </Routes>
       </div>
     </BrowserRouter>

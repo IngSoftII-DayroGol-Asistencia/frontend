@@ -1,5 +1,5 @@
 import { apiClient } from "../client";
-import type { CreateEnterpriseInput, EnterpriseCreationResponse, UserEnterpriseResponse, UserLoginInput, UserLoginResponse, UserRegistrationInput, UserRegistrationResponse } from "../../interfaces/auth";
+import type { CreateEnterpriseInput, EnterpriseCreationResponse, EnterpriseJoinRequestResponse, HandleEnterpriseJoinRequestOutput, JoinRequestStatus, UserEnterpriseResponse, UserLoginInput, UserLoginResponse, UserRegistrationInput, UserRegistrationResponse } from "../../interfaces/auth";
 import { ENDPOINTS } from "../endpoints";
 import type { UserProfileResponse } from "../../interfaces/user";
 
@@ -70,5 +70,25 @@ export const authService ={
         const response = await apiClient.get<EnterpriseCreationResponse>(ENDPOINTS.auth.enterprise.getById(enterpriseId).url);
         localStorage.setItem('currentEnterprise', JSON.stringify(response));
         return response;
+    },
+
+    async getPendingJoinRequests(enterpriseId: string): Promise<EnterpriseJoinRequestResponse[]> {
+        const response = await apiClient.get<EnterpriseJoinRequestResponse[]>(ENDPOINTS.auth.enterprise.joinRequestEnterprise(enterpriseId).url);
+        return response;
+    },
+
+    async processJoinRequest(requestId: string, approve: boolean): Promise<HandleEnterpriseJoinRequestOutput> {
+        const action: JoinRequestStatus = approve ? 'APPROVE' : 'REJECT';
+        const response = await apiClient.post<HandleEnterpriseJoinRequestOutput>(ENDPOINTS.auth.enterprise.handleJoinEnterprise().url, {
+            requestId,
+            action
+        });
+        return response;
+    },
+
+    async getUserProfile(userId: string): Promise<UserProfileResponse> {
+        const response = await apiClient.get<UserProfileResponse>(ENDPOINTS.auth.profile.getUserById(userId).url);
+        return response;
     }
+    
 }
