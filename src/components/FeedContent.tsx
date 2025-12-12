@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { FeedPostDetail } from "./FeedPostDetail";
 
-interface Post {
+export interface Post {
   id: number;
   author: string;
   avatar: string;
@@ -95,79 +95,79 @@ export function FeedContent() {
         {posts.map((post) => {
           const totalInteractions = post.upvotes - post.downvotes;
           return (
-          <Card key={post.id} className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-white/20 dark:border-gray-700/50 hover:shadow-lg transition-shadow">
-          <CardHeader className="p-4 md:p-6">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex gap-2 md:gap-3 min-w-0 flex-1">
-                <Avatar className="w-10 h-10 md:w-12 md:h-12 shrink-0">
-                  <AvatarImage src={post.avatar} />
-                  <AvatarFallback>{post.author[0]}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h4 className="truncate">{post.author}</h4>
-                    {post.trending && (
-                      <Badge variant="secondary" className="gap-1 shrink-0">
-                        <TrendingUp className="w-3 h-3" />
-                        <span className="hidden sm:inline">Trending</span>
-                      </Badge>
-                    )}
+            <Card key={post.id} className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-white/20 dark:border-gray-700/50 hover:shadow-lg transition-shadow">
+              <CardHeader className="p-4 md:p-6">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex gap-2 md:gap-3 min-w-0 flex-1">
+                    <Avatar className="w-10 h-10 md:w-12 md:h-12 shrink-0">
+                      <AvatarImage src={post.avatar} />
+                      <AvatarFallback>{post.author[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h4 className="truncate">{post.author}</h4>
+                        {post.trending && (
+                          <Badge variant="secondary" className="gap-1 shrink-0">
+                            <TrendingUp className="w-3 h-3" />
+                            <span className="hidden sm:inline">Trending</span>
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground truncate">{post.role}</p>
+                      <p className="text-xs text-muted-foreground">{post.time}</p>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">{post.role}</p>
-                  <p className="text-xs text-muted-foreground">{post.time}</p>
-                </div>
-              </div>
-              <Button variant="ghost" size="icon" className="shrink-0">
-                <MoreHorizontal className="w-5 h-5" />
-              </Button>
-            </div>
-          </CardHeader>
-          
-          <CardContent className="px-4 md:px-6">
-            <p className="whitespace-pre-line mb-3 text-sm md:text-base">{post.content}</p>
-            <div className="flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="backdrop-blur-sm bg-blue-500/10 border-blue-500/20 text-xs">
-                  #{tag}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-          
-            <CardFooter className="border-t border-white/20 dark:border-gray-700/50 pt-3 md:pt-4 px-4 md:px-6">
-              <div className="flex items-center justify-between w-full">
-                <div className="flex gap-0.5 md:gap-1">
-                  <Button variant="ghost" size="sm" className="gap-1.5 md:gap-2 px-2 md:px-3">
-                    <ThumbsUp className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" className="gap-1.5 md:gap-2 px-2 md:px-3">
-                    <ThumbsDown className="w-4 h-4" />
-                  </Button>
-                  <span className="flex items-center px-2 text-xs md:text-sm text-muted-foreground">
-                    {totalInteractions}
-                  </span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="gap-1.5 md:gap-2 px-2 md:px-3"
-                    onClick={() => handlePostClick(post)}
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    <span className="text-xs md:text-sm">{post.comments}</span>
+                  <Button variant="ghost" size="icon" className="shrink-0">
+                    <MoreHorizontal className="w-5 h-5" />
                   </Button>
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9">
-                  <Bookmark className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardFooter>
-          </Card>
+              </CardHeader>
+
+              <CardContent className="px-4 md:px-6">
+                <p className="whitespace-pre-line mb-3 text-sm md:text-base">{post.content}</p>
+                <div className="flex flex-wrap gap-2">
+                  {post.tags.map((tag) => (
+                    <Badge key={tag} variant="outline" className="backdrop-blur-sm bg-blue-500/10 border-blue-500/20 text-xs">
+                      #{tag}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+
+              <CardFooter className="border-t border-white/20 dark:border-gray-700/50 pt-3 md:pt-4 px-4 md:px-6">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex gap-0.5 md:gap-1">
+                    <Button variant="ghost" size="sm" className="gap-1.5 md:gap-2 px-2 md:px-3">
+                      <ThumbsUp className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="gap-1.5 md:gap-2 px-2 md:px-3">
+                      <ThumbsDown className="w-4 h-4" />
+                    </Button>
+                    <span className="flex items-center px-2 text-xs md:text-sm text-muted-foreground">
+                      {totalInteractions}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1.5 md:gap-2 px-2 md:px-3"
+                      onClick={() => handlePostClick(post)}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      <span className="text-xs md:text-sm">{post.comments}</span>
+                    </Button>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9">
+                    <Bookmark className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardFooter>
+            </Card>
           );
         })}
       </div>
 
       {/* Post Detail Modal */}
-      <FeedPostDetail 
+      <FeedPostDetail
         post={selectedPost}
         open={postDetailOpen}
         onOpenChange={setPostDetailOpen}

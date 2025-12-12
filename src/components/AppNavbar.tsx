@@ -125,10 +125,10 @@ export function AppNavbar({ darkMode, toggleDarkMode, onLogout, onMobileMenuTogg
                 )}
                 {userRelationEnterprise.enterprises[0].isOwner &&
                   (
-                    <DropdownMenuItem onClick={() => window.location.href = '/manage-join-request'}>Join request</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => window.location.href = '/users-settings'}>Users</DropdownMenuItem>
                   )
                 }
-                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.location.href = '/settings'}>Settings</DropdownMenuItem>
                 <DropdownMenuItem>Preferences</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onLogout}>Log out</DropdownMenuItem>

@@ -157,4 +157,19 @@ export const authService ={
         return response;
     },
 
+    async deleteMemberEnterprise(userId: string): Promise<{message: string}> {
+        const response = await apiClient.delete<{message: string}>(ENDPOINTS.auth.enterprise.deleteEnterpriseMember(userId).url);
+        return response;
+    },
+
+    async leaveEnterprise(): Promise<{message: string}> {
+        const response = await apiClient.post<{message: string}>(ENDPOINTS.auth.enterprise.leaveEnterprise().url);
+        return response;
+    },
+
+    async trasnferEnterpriseOwner(userId: string): Promise<{message: string}> {
+        const response = await apiClient.post<{message: string}>(ENDPOINTS.auth.enterprise.transferEnterpriseOwnership(userId).url);
+        return response;
+    },
+
 }
