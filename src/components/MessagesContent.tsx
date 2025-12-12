@@ -91,7 +91,7 @@ export function MessagesContent() {
   };
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full w-full">
       {/* Channel List Sidebar */}
       <div className={`${mobileShowChat ? 'hidden md:flex' : 'flex'} w-full md:w-80 flex-col border-r border-white/20 dark:border-gray-700/50 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70`}>
         {/* Sidebar Header */}
@@ -120,11 +120,10 @@ export function MessagesContent() {
               <button
                 key={channel.id}
                 onClick={() => handleChannelSelect(channel.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                  selectedChannel === channel.id
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${selectedChannel === channel.id
                     ? "bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20"
                     : "hover:bg-white/50 dark:hover:bg-gray-800/50"
-                }`}
+                  }`}
               >
                 {channel.type === "public" ? (
                   <Hash className="w-4 h-4 shrink-0 text-muted-foreground" />
@@ -153,11 +152,10 @@ export function MessagesContent() {
               <button
                 key={channel.id}
                 onClick={() => handleChannelSelect(channel.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                  selectedChannel === channel.id
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${selectedChannel === channel.id
                     ? "bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20"
                     : "hover:bg-white/50 dark:hover:bg-gray-800/50"
-                }`}
+                  }`}
               >
                 <div className="relative">
                   <Avatar className="w-8 h-8">
@@ -277,7 +275,7 @@ export function MessagesContent() {
           <div className="max-w-4xl mx-auto space-y-4">
             {messages.map((message, index) => {
               const showAvatar = index === 0 || messages[index - 1].author !== message.author;
-              
+
               return (
                 <div key={message.id} className={`flex gap-3 ${showAvatar ? 'mt-4' : 'mt-1'}`}>
                   <div className="w-10 shrink-0">
