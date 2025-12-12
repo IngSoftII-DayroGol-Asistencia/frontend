@@ -11,7 +11,7 @@ interface AppSidebarProps {
 
 export function AppSidebar({ activeSection, onSectionChange, collapsed, onToggleCollapse }: AppSidebarProps) {
   const sections = [
-    { id: 'home', icon: Home, label: 'Feed' },
+    { id: 'feed', icon: Home, label: 'Feed' },
     { id: 'messages', icon: MessageSquare, label: 'Messages' },
     { id: 'video', icon: Video, label: 'Video Calls' },
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -21,7 +21,7 @@ export function AppSidebar({ activeSection, onSectionChange, collapsed, onToggle
     <aside className={`h-full pt-24 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-r border-white/20 dark:border-gray-700/50 flex flex-col transition-all duration-300 ${
       collapsed ? 'w-16' : 'w-64'
     }`}>
-      <div className="flex-1 p-3 space-y-2">
+      <div className="flex-1 p-3 space-y-3">
         <TooltipProvider delayDuration={0}>
           {sections.map((section) => {
             const Icon = section.icon;
@@ -61,23 +61,23 @@ export function AppSidebar({ activeSection, onSectionChange, collapsed, onToggle
             return button;
           })}
         </TooltipProvider>
-      </div>
-      
-      <div className="p-3 border-t border-white/20 dark:border-gray-700/50">
-        <Button 
-          variant="ghost" 
-          className={`w-full gap-3 ${collapsed ? 'justify-center px-0' : 'justify-start'}`}
-          onClick={onToggleCollapse}
-        >
-          {collapsed ? (
-            <ChevronRight className="w-5 h-5 shrink-0" />
-          ) : (
-            <>
-              <ChevronLeft className="w-5 h-5 shrink-0" />
-              <span>Collapse</span>
-            </>
-          )}
-        </Button>
+
+        <div className="pt-2 border-t border-white/20 dark:border-gray-700/50">
+          <Button 
+            variant="ghost" 
+            className={`w-full gap-3 ${collapsed ? 'justify-center px-0' : 'justify-start'}`}
+            onClick={onToggleCollapse}
+          >
+            {collapsed ? (
+              <ChevronRight className="w-5 h-5 shrink-0" />
+            ) : (
+              <>
+                <ChevronLeft className="w-5 h-5 shrink-0" />
+                <span>Collapse</span>
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </aside>
   );

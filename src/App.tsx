@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { LoginPage } from "./components/LoginPage";
 import { SignupPage } from "./components/SignupPage";
@@ -11,13 +11,15 @@ import { VideoCallContent } from "./components/VideoCallContent";
 import { DashboardContent } from "./components/DashboardContent";
 import { MessagesContent } from "./components/MessagesContent";
 import { authService } from "./api/services/auth.service";
-import { MyProfile, Profile } from "./components/MyProfile";
+import { MyProfile } from "./components/MyProfile";
 import { UserEnterpriseResponse } from "./interfaces/auth";
 import { RegisterEnterprise } from "./components/RegisterEnterprise";
 
 // Componente para el layout principal (después del login)
 function MainLayout() {
   const [darkMode, setDarkMode] = useState(false);
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [activeSection, setActiveSection] = useState('feed');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -44,6 +46,20 @@ function MainLayout() {
   useEffect(() => {
     validateRelationEnterprise();
   }, []);
+
+  // Keep section selection consistent without props: derive from pathname
+  useEffect(() => {
+    const path = location.pathname;
+    const sectionParam = searchParams.get('section');
+
+    if (path === '/dashboard') {
+      setActiveSection('dashboard');
+    } else if (sectionParam === 'messages' || sectionParam === 'video' || sectionParam === 'feed') {
+      setActiveSection(sectionParam);
+    } else {
+      setActiveSection('feed');
+    }
+  }, [location.pathname, searchParams]);
 
 
   const handleLogout = async () => {
@@ -109,6 +125,7 @@ export default function App() {
           <Route path="/" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/home" element={<MainLayout />} />
+          <Route path="/dashboard" element={<DashboardContent />} />
           <Route path="*" element={<NotFound />} />
           <Route path="/profile" element={<MyProfile />} />
           <Route path="/no-enterprise" element={<RegisterEnterprise />} />
