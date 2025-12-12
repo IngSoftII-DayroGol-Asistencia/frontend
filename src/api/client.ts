@@ -48,6 +48,9 @@ class HttpClient {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+            window.dispatchEvent(new CustomEvent('unauthorized'));
+        }
         const error = await response.json() as ApiError;
         throw new ApiException(error.message, response.status, error.errors);
       }

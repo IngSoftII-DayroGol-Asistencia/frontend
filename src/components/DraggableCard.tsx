@@ -60,43 +60,43 @@ export function DraggableCard({
           <div className="flex items-start justify-between">
             <h4 className="text-sm">{card.title}</h4>
             <DropdownMenu>
-            <DropdownMenuTrigger
-              asChild
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-              onMouseDown={() => setDragLocked(true)}
-              onPointerDown={() => setDragLocked(true)}
-            >
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-6 h-6 -mt-1 -mr-2"
+              <DropdownMenuTrigger
+                asChild
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                onMouseDown={() => setDragLocked(true)}
+                onPointerDown={() => setDragLocked(true)}
               >
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              onCloseAutoFocus={() => setDragLocked(false)}
-              onEscapeKeyDown={() => setDragLocked(false)}
-              onPointerDownOutside={() => setDragLocked(false)}
-            >
-              <DropdownMenuItem
-                onClick={(e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  setDragLocked(false);
-                  onEdit(listId, card);
-                }}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-6 h-6 -mt-1 -mr-2"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                onCloseAutoFocus={() => setDragLocked(false)}
+                onEscapeKeyDown={() => setDragLocked(false)}
+                onPointerDownOutside={() => setDragLocked(false)}
               >
-                <Pencil className="w-4 h-4" /> Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={(e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  setDragLocked(false);
-                  onDelete(listId, card.id);
-                }}
-              >
+                <DropdownMenuItem
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    setDragLocked(false);
+                    onEdit(listId, card);
+                  }}
+                >
+                  <Pencil className="w-4 h-4" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    setDragLocked(false);
+                    onDelete(listId, card.id);
+                  }}
+                >
                   <Trash className="w-4 h-4" /> Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>

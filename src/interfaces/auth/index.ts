@@ -3,3 +3,9 @@ export * from './login.interface';
 export * from './userEnterprise.interface';
 export * from './logout.interface';
 export * from './enterpriseCreation.interface';
+export * from './pendingJoin.interface';
+export * from './handleEnterpriseJoinRequest.interface'
+export * from './roles.interface';
+export * from './enterprisePermissions.interface';
+export * from './myEnterprise.interface';   
+export * from './myRoles.interface';

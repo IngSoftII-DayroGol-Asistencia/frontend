@@ -1,9 +1,5 @@
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AppNavbar } from "./AppNavbar";
-import { AppSidebar } from "./AppSidebar";
-import { MobileSidebar } from "./MobileSidebar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader } from "./ui/card";
@@ -35,17 +31,8 @@ import {
 	sortableKeyboardCoordinates,
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { authService } from "../api/services/auth.service";
 
 export function DashboardContent() {
-	// Layout state to mirror other pages
-	const [darkMode, setDarkMode] = useState(false);
-	const [activeSection, setActiveSection] = useState("dashboard");
-	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-	const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-	const toggleMobileSidebar = () => setMobileSidebarOpen(prev => !prev);
-	const navigate = useNavigate();
-
 	// Workboard state
 	const [board, setBoard] = useState<BoardWithLists | null>(null);
 	const [lists, setLists] = useState<ListResponse[]>([]);
@@ -74,24 +61,10 @@ export function DashboardContent() {
 		})
 	);
 
-	// Theme sync like other pages
-	useEffect(() => {
-		if (darkMode) {
-			document.documentElement.classList.add("dark");
-		} else {
-			document.documentElement.classList.remove("dark");
-		}
-	}, [darkMode]);
-
 	// Initialize board and fetch data
 	useEffect(() => {
 		initializeBoard();
 	}, []);
-
-	const handleLogout = async () => {
-		await authService.logoutUser();
-		window.location.href = "/";
-	};
 
 	const initializeBoard = async () => {
 		try {
@@ -267,12 +240,6 @@ export function DashboardContent() {
 		return colors[index % colors.length];
 	};
 
-	const handleSectionChange = (sectionId: string) => {
-		setActiveSection(sectionId);
-		if (sectionId === "dashboard") return;
-		navigate(`/home?section=${sectionId}`);
-	};
-
 	const handleDragStart = (event: DragStartEvent) => {
 		setDraggedCardId(event.active.id as string);
 	};
@@ -353,154 +320,123 @@ export function DashboardContent() {
 	};
 
 	return (
-		<div className={darkMode ? "dark" : ""}>
-			<div className="size-full flex flex-col bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-950 dark:via-blue-950/30 dark:to-purple-950/30">
-				<AppNavbar
-					darkMode={darkMode}
-					toggleDarkMode={() => setDarkMode(!darkMode)}
-					onLogout={handleLogout}
-					onMobileMenuToggle={toggleMobileSidebar}
-				/>
+		<div className="p-4 md:p-6 space-y-4 md:space-y-6">
+			{loading && (
+				<div className="flex items-center justify-center h-64">
+					<p className="text-muted-foreground">Loading dashboard...</p>
+				</div>
+			)}
 
-				<div className="flex-1 flex overflow-hidden">
-					<div className="hidden md:block">
-						<AppSidebar
-							activeSection={activeSection}
-							onSectionChange={handleSectionChange}
-							collapsed={sidebarCollapsed}
-							onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-						/>
+			{error && (
+				<div className="flex items-center justify-center h-64">
+					<div className="text-center">
+						<p className="text-red-600 dark:text-red-400 mb-2">Error loading dashboard</p>
+						<p className="text-sm text-muted-foreground">{error}</p>
+						<Button onClick={initializeBoard} className="mt-4">Retry</Button>
+					</div>
+				</div>
+			)}
+
+			{!loading && !error && !board && (
+				<div className="flex items-center justify-center h-64">
+					<p className="text-muted-foreground">No board data available.</p>
+				</div>
+			)}
+
+			{!loading && !error && board && (
+				<>
+					<div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
+						<div>
+							<h2>{board.name}</h2>
+							<p className="text-muted-foreground text-sm md:text-base">
+								{board.description || "Manage your tasks and projects"}
+							</p>
+						</div>
+						<Button
+							className="gap-2 w-full md:w-auto"
+							onClick={() => lists.length > 0 && openCardModal(lists[0].id)}
+						>
+							<Plus className="w-4 h-4" />
+							New Task
+						</Button>
 					</div>
 
-					<MobileSidebar
-						activeSection={activeSection}
-						onSectionChange={handleSectionChange}
-						open={mobileSidebarOpen}
-						onOpenChange={setMobileSidebarOpen}
+					<DndContext
+						sensors={sensors}
+						collisionDetection={closestCorners}
+						onDragStart={handleDragStart}
+						onDragEnd={handleDragEnd}
+					>
+						<SortableContext items={lists.map(l => l.id)} strategy={verticalListSortingStrategy}>
+							<div className="flex gap-4 overflow-x-auto pb-4 md:pb-0 md:grid md:grid-cols-2 lg:grid-cols-4">
+								{lists.map((list, index) => (
+									<DroppableList
+										key={list.id}
+										list={list}
+										cards={cardsByList[list.id] || []}
+										columnColor={getColumnColor(index)}
+										onAddCard={openCardModal}
+										onEditCard={openEditCardModal}
+										onDeleteCard={handleDeleteCard}
+										getPriorityColor={getPriorityColor}
+									/>
+								))}
+							</div>
+						</SortableContext>
+						<DragOverlay>
+							{draggedCardId && (() => {
+								for (const cards of Object.values(cardsByList)) {
+									const draggedCard = cards.find(c => c.id === draggedCardId);
+									if (draggedCard) {
+										return (
+											<Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-white/20 dark:border-gray-700/50 shadow-2xl w-[280px] opacity-100">
+												<CardHeader className="pb-3">
+													<h4 className="text-sm font-semibold">{draggedCard.title}</h4>
+												</CardHeader>
+												<CardContent className="space-y-3">
+													<p className="text-sm text-muted-foreground">{draggedCard.description}</p>
+													<div className="flex items-center justify-between">
+														<Badge
+															variant="outline"
+															className={`text-xs ${getPriorityColor(draggedCard.priority)}`}
+														>
+															{draggedCard.priority}
+														</Badge>
+													</div>
+												</CardContent>
+											</Card>
+										);
+									}
+								}
+								return null;
+							})()}
+						</DragOverlay>
+					</DndContext>
+
+					<CreateCardModal
+						isOpen={isCardModalOpen}
+						onClose={() => {
+							setIsCardModalOpen(false);
+							setSelectedListId(null);
+							setEditingCard(null);
+						}}
+						onSubmit={handleSubmitCard}
+						listName={lists.find(l => l.id === selectedListId)?.name}
+						mode={modalMode}
+						initialData={editingCard ? {
+							title: editingCard.title,
+							description: editingCard.description,
+							priority: editingCard.priority,
+						} : undefined}
 					/>
 
-					<main className="flex-1 overflow-y-auto">
-						<div className="p-4 md:p-6 space-y-4 md:space-y-6">
-							{loading && (
-								<div className="flex items-center justify-center h-64">
-									<p className="text-muted-foreground">Loading dashboard...</p>
-								</div>
-							)}
-
-							{error && (
-								<div className="flex items-center justify-center h-64">
-									<div className="text-center">
-										<p className="text-red-600 dark:text-red-400 mb-2">Error loading dashboard</p>
-										<p className="text-sm text-muted-foreground">{error}</p>
-										<Button onClick={initializeBoard} className="mt-4">Retry</Button>
-									</div>
-								</div>
-							)}
-
-							{!loading && !error && !board && (
-								<div className="flex items-center justify-center h-64">
-									<p className="text-muted-foreground">No board data available.</p>
-								</div>
-							)}
-
-							{!loading && !error && board && (
-								<>
-									<div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
-										<div>
-											<h2>{board.name}</h2>
-											<p className="text-muted-foreground text-sm md:text-base">
-												{board.description || "Manage your tasks and projects"}
-											</p>
-										</div>
-										<Button
-											className="gap-2 w-full md:w-auto"
-											onClick={() => lists.length > 0 && openCardModal(lists[0].id)}
-										>
-											<Plus className="w-4 h-4" />
-											New Task
-										</Button>
-									</div>
-
-									<DndContext
-										sensors={sensors}
-										collisionDetection={closestCorners}
-										onDragStart={handleDragStart}
-										onDragEnd={handleDragEnd}
-									>
-										<SortableContext items={lists.map(l => l.id)} strategy={verticalListSortingStrategy}>
-											<div className="flex gap-4 overflow-x-auto pb-4 md:pb-0 md:grid md:grid-cols-2 lg:grid-cols-4">
-												{lists.map((list, index) => (
-													<DroppableList
-														key={list.id}
-														list={list}
-														cards={cardsByList[list.id] || []}
-														columnColor={getColumnColor(index)}
-														onAddCard={openCardModal}
-														onEditCard={openEditCardModal}
-														onDeleteCard={handleDeleteCard}
-														getPriorityColor={getPriorityColor}
-													/>
-												))}
-											</div>
-										</SortableContext>
-										<DragOverlay>
-											{draggedCardId && (() => {
-												for (const cards of Object.values(cardsByList)) {
-													const draggedCard = cards.find(c => c.id === draggedCardId);
-													if (draggedCard) {
-														return (
-															<Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-white/20 dark:border-gray-700/50 shadow-2xl w-[280px] opacity-100">
-																<CardHeader className="pb-3">
-																	<h4 className="text-sm font-semibold">{draggedCard.title}</h4>
-																</CardHeader>
-																<CardContent className="space-y-3">
-																	<p className="text-sm text-muted-foreground">{draggedCard.description}</p>
-																	<div className="flex items-center justify-between">
-																		<Badge
-																			variant="outline"
-																			className={`text-xs ${getPriorityColor(draggedCard.priority)}`}
-																		>
-																			{draggedCard.priority}
-																		</Badge>
-																	</div>
-																</CardContent>
-															</Card>
-														);
-													}
-												}
-												return null;
-											})()}
-										</DragOverlay>
-									</DndContext>
-
-									<CreateCardModal
-										isOpen={isCardModalOpen}
-										onClose={() => {
-											setIsCardModalOpen(false);
-											setSelectedListId(null);
-											setEditingCard(null);
-										}}
-										onSubmit={handleSubmitCard}
-										listName={lists.find(l => l.id === selectedListId)?.name}
-										mode={modalMode}
-										initialData={editingCard ? {
-											title: editingCard.title,
-											description: editingCard.description,
-											priority: editingCard.priority,
-										} : undefined}
-									/>
-
-									<CreateListModal
-										isOpen={isListModalOpen}
-										onClose={() => setIsListModalOpen(false)}
-										onSubmit={handleCreateList}
-									/>
-								</>
-							)}
-						</div>
-					</main>
-				</div>
-			</div>
+					<CreateListModal
+						isOpen={isListModalOpen}
+						onClose={() => setIsListModalOpen(false)}
+						onSubmit={handleCreateList}
+					/>
+				</>
+			)}
 		</div>
 	);
 }
