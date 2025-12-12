@@ -1,161 +1,507 @@
-import { Plus, MoreVertical } from "lucide-react";
+import { Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { AppNavbar } from "./AppNavbar";
+import { AppSidebar } from "./AppSidebar";
+import { MobileSidebar } from "./MobileSidebar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader } from "./ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import workboardService from "../services/workboardService";
+import {
+	BoardWithLists,
+	ListResponse,
+	CardResponse,
+	CardPriority,
+	CardCreate,
+} from "../types/workboard.types";
+import { CreateCardModal } from "./CreateCardModal";
+import { CreateListModal } from "./CreateListModal";
+import { DroppableList } from "./DroppableList";
+import {
+	DndContext,
+	closestCorners,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+	DragEndEvent,
+	DragOverlay,
+	DragStartEvent,
+} from "@dnd-kit/core";
+import {
+	arrayMove,
+	SortableContext,
+	sortableKeyboardCoordinates,
+	verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { authService } from "../api/services/auth.service";
 
 export function DashboardContent() {
-  const columns = [
-    {
-      id: 'todo',
-      title: 'To Do',
-      color: 'bg-gray-500',
-      tasks: [
-        {
-          id: 1,
-          title: 'Design new landing page',
-          description: 'Create mockups for the new landing page design',
-          priority: 'high',
-          assignees: ['https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'],
-        },
-        {
-          id: 2,
-          title: 'Update documentation',
-          description: 'Add new API endpoints to the docs',
-          priority: 'medium',
-          assignees: ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'],
-        },
-      ],
-    },
-    {
-      id: 'inprogress',
-      title: 'In Progress',
-      color: 'bg-blue-500',
-      tasks: [
-        {
-          id: 3,
-          title: 'Implement dark mode',
-          description: 'Add dark mode support across the application',
-          priority: 'high',
-          assignees: [
-            'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop',
-            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
-          ],
-        },
-      ],
-    },
-    {
-      id: 'review',
-      title: 'Review',
-      color: 'bg-yellow-500',
-      tasks: [
-        {
-          id: 4,
-          title: 'Code review PR #234',
-          description: 'Review authentication refactor pull request',
-          priority: 'medium',
-          assignees: ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'],
-        },
-      ],
-    },
-    {
-      id: 'done',
-      title: 'Done',
-      color: 'bg-green-500',
-      tasks: [
-        {
-          id: 5,
-          title: 'Fix navigation bug',
-          description: 'Resolved issue with mobile navigation',
-          priority: 'high',
-          assignees: ['https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'],
-        },
-        {
-          id: 6,
-          title: 'Setup CI/CD pipeline',
-          description: 'Automated testing and deployment',
-          priority: 'low',
-          assignees: ['https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop'],
-        },
-      ],
-    },
-  ];
+	// Layout state to mirror other pages
+	const [darkMode, setDarkMode] = useState(false);
+	const [activeSection, setActiveSection] = useState("dashboard");
+	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+	const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+	const toggleMobileSidebar = () => setMobileSidebarOpen(prev => !prev);
+	const navigate = useNavigate();
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20';
-      case 'medium':
-        return 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20';
-      case 'low':
-        return 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20';
-      default:
-        return 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20';
-    }
-  };
+	// Workboard state
+	const [board, setBoard] = useState<BoardWithLists | null>(null);
+	const [lists, setLists] = useState<ListResponse[]>([]);
+	const [cardsByList, setCardsByList] = useState<Record<string, CardResponse[]>>({});
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+	const [isCardModalOpen, setIsCardModalOpen] = useState(false);
+	const [isListModalOpen, setIsListModalOpen] = useState(false);
+	const [selectedListId, setSelectedListId] = useState<string | null>(null);
+	const [editingCard, setEditingCard] = useState<CardResponse | null>(null);
+	const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+	const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
 
-  return (
-    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
-        <div>
-          <h2>Project Dashboard</h2>
-          <p className="text-muted-foreground text-sm md:text-base">Manage your tasks and projects</p>
-        </div>
-        <Button className="gap-2 w-full md:w-auto">
-          <Plus className="w-4 h-4" />
-          New Task
-        </Button>
-      </div>
+	const DEFAULT_USER_ID = "user123";
 
-      <div className="flex gap-4 overflow-x-auto pb-4 md:pb-0 md:grid md:grid-cols-2 lg:grid-cols-4">
-        {columns.map((column) => (
-          <div key={column.id} className="min-w-[280px] md:min-w-0 w-[280px] md:w-auto">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${column.color}`} />
-                <h3>{column.title}</h3>
-                <Badge variant="secondary">{column.tasks.length}</Badge>
-              </div>
-              <Button variant="ghost" size="icon" className="w-6 h-6">
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-            
-            <div className="space-y-3">
-              {column.tasks.map((task) => (
-                <Card key={task.id} className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-white/20 dark:border-gray-700/50 hover:shadow-md transition-shadow cursor-pointer">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <h4 className="text-sm">{task.title}</h4>
-                      <Button variant="ghost" size="icon" className="w-6 h-6 -mt-1 -mr-2">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-sm text-muted-foreground">{task.description}</p>
-                    
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className={`text-xs ${getPriorityColor(task.priority)}`}>
-                        {task.priority}
-                      </Badge>
-                      
-                      <div className="flex -space-x-2">
-                        {task.assignees.map((avatar, idx) => (
-                          <Avatar key={idx} className="w-6 h-6 border-2 border-white dark:border-gray-900">
-                            <AvatarImage src={avatar} />
-                            <AvatarFallback>U</AvatarFallback>
-                          </Avatar>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+	const sensors = useSensors(
+		useSensor(PointerSensor, {
+			// Keep drag responsive while preventing menu clicks from triggering drag
+			activationConstraint: {
+				delay: 80,
+				tolerance: 4,
+			},
+		}),
+		useSensor(KeyboardSensor, {
+			coordinateGetter: sortableKeyboardCoordinates,
+		})
+	);
+
+	// Theme sync like other pages
+	useEffect(() => {
+		if (darkMode) {
+			document.documentElement.classList.add("dark");
+		} else {
+			document.documentElement.classList.remove("dark");
+		}
+	}, [darkMode]);
+
+	// Initialize board and fetch data
+	useEffect(() => {
+		initializeBoard();
+	}, []);
+
+	const handleLogout = async () => {
+		await authService.logoutUser();
+		window.location.href = "/";
+	};
+
+	const initializeBoard = async () => {
+		try {
+			setLoading(true);
+			setError(null);
+
+			const boards = await workboardService.getBoardsByOwner(DEFAULT_USER_ID);
+			let currentBoard: BoardWithLists;
+
+			if (boards.length === 0) {
+				const newBoard = await workboardService.createBoard({
+					name: "Project Dashboard",
+					description: "Manage your tasks and projects",
+					color: "#3b82f6",
+					owner_id: DEFAULT_USER_ID,
+				});
+
+				await createDefaultLists(newBoard.id);
+				currentBoard = await workboardService.getBoardWithLists(newBoard.id);
+			} else {
+				currentBoard = await workboardService.getBoardWithLists(boards[0].id);
+			}
+
+			setBoard(currentBoard);
+			setLists(currentBoard.lists || []);
+			await fetchCardsForLists(currentBoard.lists || []);
+		} catch (err) {
+			console.error("Failed to initialize board:", err);
+			setError(err instanceof Error ? err.message : "Failed to load board");
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const createDefaultLists = async (boardId: string) => {
+		const defaultLists = [
+			{ name: "To Do", position: 0 },
+			{ name: "In Progress", position: 1 },
+			{ name: "Review", position: 2 },
+			{ name: "Done", position: 3 },
+		];
+
+		for (const list of defaultLists) {
+			await workboardService.createList({ ...list, board_id: boardId }, DEFAULT_USER_ID);
+		}
+	};
+
+	const fetchCardsForLists = async (listsToFetch: ListResponse[]) => {
+		const cardsMap: Record<string, CardResponse[]> = {};
+
+		for (const list of listsToFetch) {
+			try {
+				const cards = await workboardService.getCardsByList(list.id);
+				cardsMap[list.id] = cards;
+			} catch (err) {
+				console.error(`Failed to fetch cards for list ${list.id}:`, err);
+				cardsMap[list.id] = [];
+			}
+		}
+
+		setCardsByList(cardsMap);
+	};
+
+	const openCardModal = (listId: string) => {
+		setSelectedListId(listId);
+		setModalMode("create");
+		setEditingCard(null);
+		setIsCardModalOpen(true);
+	};
+
+	const openEditCardModal = (listId: string, card: CardResponse) => {
+		setSelectedListId(listId);
+		setEditingCard(card);
+		setModalMode("edit");
+		setIsCardModalOpen(true);
+	};
+
+	const handleSubmitCard = async (data: {
+		title: string;
+		description: string;
+		priority: CardPriority;
+	}) => {
+		if (!board || !selectedListId) return;
+
+		try {
+			if (modalMode === "create") {
+				const newCard: CardCreate = {
+					title: data.title,
+					description: data.description,
+					priority: data.priority,
+					status: "todo" as any,
+					position: cardsByList[selectedListId]?.length || 0,
+					list_id: selectedListId,
+				};
+
+				const createdCard = await workboardService.createCard(newCard, DEFAULT_USER_ID);
+
+				setCardsByList(prev => ({
+					...prev,
+					[selectedListId]: [...(prev[selectedListId] || []), createdCard],
+				}));
+			} else if (editingCard) {
+				const updated = await workboardService.updateCard(
+					editingCard.id,
+					{
+						title: data.title,
+						description: data.description,
+						priority: data.priority,
+					},
+					DEFAULT_USER_ID,
+				);
+
+				setCardsByList(prev => ({
+					...prev,
+					[selectedListId]: (prev[selectedListId] || []).map(card =>
+						card.id === updated.id ? { ...card, ...updated } : card
+					),
+				}));
+			}
+		} catch (err) {
+			console.error("Failed to submit card:", err);
+		}
+	};
+
+	const handleDeleteCard = async (listId: string, cardId: string) => {
+		try {
+			await workboardService.deleteCard(cardId);
+			setCardsByList(prev => ({
+				...prev,
+				[listId]: (prev[listId] || []).filter(card => card.id !== cardId),
+			}));
+		} catch (err) {
+			console.error("Failed to delete card:", err);
+		}
+	};
+
+	const handleCreateList = async (name: string) => {
+		if (!board) return;
+
+		try {
+			const newList = await workboardService.createList(
+				{
+					name,
+					position: lists.length,
+					board_id: board.id,
+				},
+				DEFAULT_USER_ID
+			);
+
+			setLists(prev => [...prev, newList]);
+			setCardsByList(prev => ({ ...prev, [newList.id]: [] }));
+		} catch (err) {
+			console.error("Failed to create list:", err);
+		}
+	};
+
+	const getPriorityColor = (priority: string) => {
+		switch (priority) {
+			case "high":
+			case "urgent":
+				return "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20";
+			case "medium":
+				return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20";
+			case "low":
+				return "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20";
+			default:
+				return "bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20";
+		}
+	};
+
+	const getColumnColor = (index: number) => {
+		const colors = ["bg-gray-500", "bg-blue-500", "bg-yellow-500", "bg-green-500"];
+		return colors[index % colors.length];
+	};
+
+	const handleSectionChange = (sectionId: string) => {
+		setActiveSection(sectionId);
+		if (sectionId === "dashboard") return;
+		navigate(`/home?section=${sectionId}`);
+	};
+
+	const handleDragStart = (event: DragStartEvent) => {
+		setDraggedCardId(event.active.id as string);
+	};
+
+	const handleDragEnd = (event: DragEndEvent) => {
+		const { active, over } = event;
+		setDraggedCardId(null);
+
+		if (!over) return;
+
+		let sourceListId: string | null = null;
+		let destListId: string | null = null;
+
+		for (const [listId, cards] of Object.entries(cardsByList)) {
+			if (cards.find(c => c.id === active.id)) {
+				sourceListId = listId;
+				break;
+			}
+		}
+
+		if (cardsByList[over.id as string]) {
+			destListId = over.id as string;
+		} else {
+			for (const [listId, cards] of Object.entries(cardsByList)) {
+				if (cards.find(c => c.id === over.id)) {
+					destListId = listId;
+					break;
+				}
+			}
+		}
+
+		if (!sourceListId || !destListId) return;
+
+		setCardsByList(prev => {
+			const newCardsByList = { ...prev };
+			const sourceCards = [...(newCardsByList[sourceListId] || [])];
+			const destCards = sourceListId === destListId ? sourceCards : [...(newCardsByList[destListId] || [])];
+
+			const activeIndex = sourceCards.findIndex(c => c.id === active.id);
+			const overIndex = destCards.findIndex(c => c.id === over.id);
+
+			if (activeIndex === -1) return prev;
+
+			let newSourceCards = sourceCards;
+			let newDestCards = destCards;
+
+			if (sourceListId === destListId) {
+				newSourceCards = arrayMove(sourceCards, activeIndex, overIndex === -1 ? sourceCards.length - 1 : overIndex);
+				newDestCards = newSourceCards;
+			} else {
+				const [movedCard] = sourceCards.splice(activeIndex, 1);
+				newSourceCards = sourceCards;
+				newDestCards = overIndex === -1
+					? [...destCards, movedCard]
+					: [...destCards.slice(0, overIndex), movedCard, ...destCards.slice(overIndex)];
+			}
+
+			return {
+				...newCardsByList,
+				[sourceListId]: newSourceCards,
+				...(sourceListId !== destListId && { [destListId]: newDestCards }),
+			};
+		});
+
+		const card = cardsByList[sourceListId]?.find(c => c.id === active.id);
+		if (card) {
+			workboardService
+				.updateCard(
+					card.id,
+					{
+						list_id: destListId,
+						position: cardsByList[destListId]?.length || 0,
+					},
+					DEFAULT_USER_ID
+				)
+				.catch(err => console.error("Failed to update card position:", err));
+		}
+	};
+
+	return (
+		<div className={darkMode ? "dark" : ""}>
+			<div className="size-full flex flex-col bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-950 dark:via-blue-950/30 dark:to-purple-950/30">
+				<AppNavbar
+					darkMode={darkMode}
+					toggleDarkMode={() => setDarkMode(!darkMode)}
+					onLogout={handleLogout}
+					onMobileMenuToggle={toggleMobileSidebar}
+				/>
+
+				<div className="flex-1 flex overflow-hidden">
+					<div className="hidden md:block">
+						<AppSidebar
+							activeSection={activeSection}
+							onSectionChange={handleSectionChange}
+							collapsed={sidebarCollapsed}
+							onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+						/>
+					</div>
+
+					<MobileSidebar
+						activeSection={activeSection}
+						onSectionChange={handleSectionChange}
+						open={mobileSidebarOpen}
+						onOpenChange={setMobileSidebarOpen}
+					/>
+
+					<main className="flex-1 overflow-y-auto">
+						<div className="p-4 md:p-6 space-y-4 md:space-y-6">
+							{loading && (
+								<div className="flex items-center justify-center h-64">
+									<p className="text-muted-foreground">Loading dashboard...</p>
+								</div>
+							)}
+
+							{error && (
+								<div className="flex items-center justify-center h-64">
+									<div className="text-center">
+										<p className="text-red-600 dark:text-red-400 mb-2">Error loading dashboard</p>
+										<p className="text-sm text-muted-foreground">{error}</p>
+										<Button onClick={initializeBoard} className="mt-4">Retry</Button>
+									</div>
+								</div>
+							)}
+
+							{!loading && !error && !board && (
+								<div className="flex items-center justify-center h-64">
+									<p className="text-muted-foreground">No board data available.</p>
+								</div>
+							)}
+
+							{!loading && !error && board && (
+								<>
+									<div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
+										<div>
+											<h2>{board.name}</h2>
+											<p className="text-muted-foreground text-sm md:text-base">
+												{board.description || "Manage your tasks and projects"}
+											</p>
+										</div>
+										<Button
+											className="gap-2 w-full md:w-auto"
+											onClick={() => lists.length > 0 && openCardModal(lists[0].id)}
+										>
+											<Plus className="w-4 h-4" />
+											New Task
+										</Button>
+									</div>
+
+									<DndContext
+										sensors={sensors}
+										collisionDetection={closestCorners}
+										onDragStart={handleDragStart}
+										onDragEnd={handleDragEnd}
+									>
+										<SortableContext items={lists.map(l => l.id)} strategy={verticalListSortingStrategy}>
+											<div className="flex gap-4 overflow-x-auto pb-4 md:pb-0 md:grid md:grid-cols-2 lg:grid-cols-4">
+												{lists.map((list, index) => (
+													<DroppableList
+														key={list.id}
+														list={list}
+														cards={cardsByList[list.id] || []}
+														columnColor={getColumnColor(index)}
+														onAddCard={openCardModal}
+														onEditCard={openEditCardModal}
+														onDeleteCard={handleDeleteCard}
+														getPriorityColor={getPriorityColor}
+													/>
+												))}
+											</div>
+										</SortableContext>
+										<DragOverlay>
+											{draggedCardId && (() => {
+												for (const cards of Object.values(cardsByList)) {
+													const draggedCard = cards.find(c => c.id === draggedCardId);
+													if (draggedCard) {
+														return (
+															<Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-white/20 dark:border-gray-700/50 shadow-2xl w-[280px] opacity-100">
+																<CardHeader className="pb-3">
+																	<h4 className="text-sm font-semibold">{draggedCard.title}</h4>
+																</CardHeader>
+																<CardContent className="space-y-3">
+																	<p className="text-sm text-muted-foreground">{draggedCard.description}</p>
+																	<div className="flex items-center justify-between">
+																		<Badge
+																			variant="outline"
+																			className={`text-xs ${getPriorityColor(draggedCard.priority)}`}
+																		>
+																			{draggedCard.priority}
+																		</Badge>
+																	</div>
+																</CardContent>
+															</Card>
+														);
+													}
+												}
+												return null;
+											})()}
+										</DragOverlay>
+									</DndContext>
+
+									<CreateCardModal
+										isOpen={isCardModalOpen}
+										onClose={() => {
+											setIsCardModalOpen(false);
+											setSelectedListId(null);
+											setEditingCard(null);
+										}}
+										onSubmit={handleSubmitCard}
+										listName={lists.find(l => l.id === selectedListId)?.name}
+										mode={modalMode}
+										initialData={editingCard ? {
+											title: editingCard.title,
+											description: editingCard.description,
+											priority: editingCard.priority,
+										} : undefined}
+									/>
+
+									<CreateListModal
+										isOpen={isListModalOpen}
+										onClose={() => setIsListModalOpen(false)}
+										onSubmit={handleCreateList}
+									/>
+								</>
+							)}
+						</div>
+					</main>
+				</div>
+			</div>
+		</div>
+	);
 }
+
