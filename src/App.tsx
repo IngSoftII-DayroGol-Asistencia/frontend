@@ -18,6 +18,8 @@ import { RegisterEnterprise } from "./components/RegisterEnterprise";
 import { Roles } from "./components/Roles";
 import { JoinRequest } from "./components/JoinRequest";
 import { AnyProfile } from "./components/AnyProfile";
+import Schedule from "./pages/Schedule";
+import Meeting from "./pages/Meeting";
 
 // Componente para refrescar el token en cada cambio de ruta
 function TokenRefresher() {
@@ -157,8 +159,10 @@ export default function App() {
           <Route path="/profile" element={<MyProfile />} />
           <Route path="/roles" element={<Roles />} />
           <Route path="/no-enterprise" element={<RegisterEnterprise />} />
-          <Route path="/manage-join-request" element={<JoinRequest />} />
+          <Route path="/join-request" element={<JoinRequest />} />
           <Route path="/user-profile" element={<AnyProfile />} />
+          <Route path="/schedule" element={<Schedule />} />
+          <Route path="/meeting/:id" element={<Meeting />} />
         </Routes>
       </div>
     </BrowserRouter>
