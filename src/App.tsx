@@ -1,5 +1,4 @@
-
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { LoginPage } from "./components/LoginPage";
 import { SignupPage } from "./components/SignupPage";
@@ -60,8 +59,8 @@ function TokenRefresher() {
 function MainLayout() {
   const [darkMode, setDarkMode] = useState(false);
   const location = useLocation();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  const [activeSection, setActiveSection] = useState((location.state as { section?: string })?.section || 'feed');
+  const [searchParams] = useSearchParams();
+  const [activeSection, setActiveSection] = useState('feed');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -100,6 +99,20 @@ function MainLayout() {
   useEffect(() => {
     validateRelationEnterprise();
   }, []);
+
+  // Keep section selection consistent without props: derive from pathname
+  useEffect(() => {
+    const path = location.pathname;
+    const sectionParam = searchParams.get('section');
+
+    if (path === '/dashboard') {
+      setActiveSection('dashboard');
+    } else if (sectionParam === 'messages' || sectionParam === 'video' || sectionParam === 'feed') {
+      setActiveSection(sectionParam);
+    } else {
+      setActiveSection('feed');
+    }
+  }, [location.pathname, searchParams]);
 
 
   const handleLogout = async () => {
@@ -167,6 +180,7 @@ export default function App() {
           <Route path="/" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/home" element={<MainLayout />} />
+          <Route path="/dashboard" element={<DashboardContent />} />
           <Route path="*" element={<NotFound />} />
           <Route path="/profile" element={<MyProfile />} />
           <Route path="/roles" element={<Roles />} />

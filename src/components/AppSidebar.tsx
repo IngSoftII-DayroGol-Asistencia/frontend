@@ -11,7 +11,7 @@ interface AppSidebarProps {
 
 export function AppSidebar({ activeSection, onSectionChange, collapsed, onToggleCollapse }: AppSidebarProps) {
   const sections = [
-    { id: 'home', icon: Home, label: 'Feed' },
+    { id: 'feed', icon: Home, label: 'Feed' },
     { id: 'messages', icon: MessageSquare, label: 'Messages' },
     { id: 'video', icon: Video, label: 'Video Calls' },
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
