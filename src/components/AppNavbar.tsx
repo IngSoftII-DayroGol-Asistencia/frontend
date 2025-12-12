@@ -120,10 +120,10 @@ export function AppNavbar({ darkMode, toggleDarkMode, onLogout, onMobileMenuTogg
                 <DropdownMenuLabel> {`${enterpriseData?.name ?? ""} \n ${enterpriseData?.id ?? ""}`} </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => window.location.href = '/profile'}>Profile</DropdownMenuItem>
-                {(userRelationEnterprise.enterprises[0].isOwner || hasPermission('ROLES', ['READ', 'UPDATE', 'MANAGE', 'CREATE', 'DELETE'])) && (
+                {(userRelationEnterprise?.enterprises?.[0]?.isOwner || hasPermission('ROLES', ['READ', 'UPDATE', 'MANAGE', 'CREATE', 'DELETE'])) && (
                   <DropdownMenuItem onClick={() => window.location.href = '/roles'}>Roles</DropdownMenuItem>
                 )}
-                {userRelationEnterprise.enterprises[0].isOwner &&
+                {userRelationEnterprise?.enterprises?.[0]?.isOwner &&
                   (
                     <DropdownMenuItem onClick={() => window.location.href = '/users-settings'}>Users</DropdownMenuItem>
                   )

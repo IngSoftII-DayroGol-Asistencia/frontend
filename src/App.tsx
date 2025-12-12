@@ -78,9 +78,22 @@ function MainLayout() {
   const toggleMobileSidebar = () => setMobileSidebarOpen(!mobileSidebarOpen);
 
   const validateRelationEnterprise = () => {
-    const data: UserEnterpriseResponse = JSON.parse(localStorage.getItem('userRelationEnterprise') ?? '') as UserEnterpriseResponse;
-    if (data.enterprises.length === 0) {
-      window.location.href = '/no-enterprise';
+    try {
+      const storedData = localStorage.getItem('userRelationEnterprise');
+      if (storedData) {
+        const data: UserEnterpriseResponse = JSON.parse(storedData) as UserEnterpriseResponse;
+        if (data.enterprises && data.enterprises.length === 0) {
+          window.location.href = '/no-enterprise';
+        }
+      } else {
+        // If no data, potentially also redirect or handle as needed, assuming flow requires check
+        // For now, if no data, we might be in inconsistent state, or just wait.
+        // But user requirement says: if no enterprise -> /no-enterprise.
+        // If we have no data, we can't be sure. But usually login sets it.
+        // Let's assume safely that if empty array -> redirect.
+      }
+    } catch (e) {
+      console.error("Error parsing userRelationEnterprise", e);
     }
   }
 

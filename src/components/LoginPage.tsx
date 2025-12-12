@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { authService } from "../api/services/auth.service";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 import type { UserProfileResponse } from "../interfaces/user";
@@ -15,6 +15,10 @@ export function LoginPage() {
   const [errorEmail, setErrorEmail] = useState<string | null>(null);
   const [errorPassword, setErrorPassword] = useState<string | null>(null);
   const [errorForm, setErrorForm] = useState<string | null>(null);
+
+  useEffect(() => {
+    localStorage.clear();
+  }, []);
 
   const validateForm = (): boolean => {
     if (!email?.includes("@")) {
@@ -36,10 +40,15 @@ export function LoginPage() {
       await authService.getCurrentUser();
       const currentUser: UserProfileResponse = JSON.parse(localStorage.getItem('currentUser') ?? '') as UserProfileResponse;
       await authService.getUserRelationEnterprise(currentUser.userId);
-      const userRelationEnterprise: UserEnterpriseResponse = JSON.parse(localStorage.getItem('userRelationEnterprise') ?? '') as UserEnterpriseResponse;
-      await authService.getEnterprise(userRelationEnterprise.enterprises[0].enterpriseId);
-      await authService.getMyEnterprise();
-      await authService.getMyRoles();
+      const userRelationEnterpriseStr = localStorage.getItem('userRelationEnterprise');
+      if (userRelationEnterpriseStr) {
+        const userRelationEnterprise: UserEnterpriseResponse = JSON.parse(userRelationEnterpriseStr) as UserEnterpriseResponse;
+        if (userRelationEnterprise.enterprises && userRelationEnterprise.enterprises.length > 0) {
+          await authService.getEnterprise(userRelationEnterprise.enterprises[0].enterpriseId);
+          await authService.getMyEnterprise();
+          await authService.getMyRoles();
+        }
+      }
     }
     return null;
   };
@@ -53,6 +62,14 @@ export function LoginPage() {
     authService.loginUser({ email, password })
       .then(async () => {
         await getUserInfo();
+        const userRelationEnterpriseStr = localStorage.getItem('userRelationEnterprise');
+        if (userRelationEnterpriseStr) {
+          const userRelationEnterprise: UserEnterpriseResponse = JSON.parse(userRelationEnterpriseStr) as UserEnterpriseResponse;
+          if (userRelationEnterprise.enterprises && userRelationEnterprise.enterprises.length === 0) {
+            void navigate('/no-enterprise');
+            return;
+          }
+        }
         void navigate('/home');
       })
       .catch((error) => {
