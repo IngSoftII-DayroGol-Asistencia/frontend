@@ -33,7 +33,7 @@ const InlineInput = ({ name, value, placeholder, isEditing, onChange, className 
 };
 
 const formatDateForInput = (isoDate: string | null | undefined): string => {
-    if (!isoDate) {return "";}
+    if (!isoDate) { return ""; }
     return isoDate.split("T")[0];
 };
 
@@ -42,7 +42,7 @@ export function AnyProfile() {
     const [activeSection, setActiveSection] = useState('feed');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-    
+
     const [profileData, setProfileData] = useState<UserProfileResponse | null>(null);
     const [formData, setFormData] = useState<UserProfileResponse | null>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -55,7 +55,7 @@ export function AnyProfile() {
     const navigate = useNavigate();
 
     const handleSidebarNavigation = (section: string) => {
-        void navigate(`/${section}`); 
+        void navigate('/home', { state: { section: section } });
     };
 
     const toggleDarkMode = () => setDarkMode(!darkMode);
@@ -69,28 +69,28 @@ export function AnyProfile() {
 
 
 
-useEffect(() => {
-    const fetchUserProfile = async () => {
-        try {
-            const storedId = localStorage.getItem('userIdSearch');
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                const storedId = localStorage.getItem('userIdSearch');
 
-            if (!storedId) {
-                console.warn("No se encontró 'userIdSearch' en localStorage. Abortando búsqueda.");
-                return; 
+                if (!storedId) {
+                    console.warn("No se encontró 'userIdSearch' en localStorage. Abortando búsqueda.");
+                    return;
+                }
+                const data = await authService.getUserProfile(storedId);
+                console.log("Perfil cargado:", data);
+                setProfileData(data);
+
+            } catch (error) {
+                console.error("Error al obtener el perfil:", error);
+            } finally {
+                setIsLoading(false);
             }
-            const data = await authService.getUserProfile(storedId);
-            console.log("Perfil cargado:", data);
-            setProfileData(data);
+        };
+        void fetchUserProfile();
 
-        } catch (error) {
-            console.error("Error al obtener el perfil:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    void fetchUserProfile();
-
-}, [setIsLoading]);
+    }, [setIsLoading]);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -100,7 +100,7 @@ useEffect(() => {
     };
 
     const handleEdit = () => {
-        setFormData(JSON.parse(JSON.stringify(profileData))); 
+        setFormData(JSON.parse(JSON.stringify(profileData)));
         setIsEditing(true);
     };
 
@@ -115,26 +115,26 @@ useEffect(() => {
         if (formData) {
             setProfileData(formData);
             setIsEditing(false);
-			await authService.updateMyUser(formData)
-			localStorage.setItem('currentUser', JSON.stringify(formData));
+            await authService.updateMyUser(formData)
+            localStorage.setItem('currentUser', JSON.stringify(formData));
         }
     };
 
     const handleExperienceChange = (index: number, field: keyof Experience, value: string | boolean | null) => {
-        if (!formData?.experiences) {return;}
+        if (!formData?.experiences) { return; }
         const newExperiences = [...formData.experiences];
-        
+
         if (field === 'isCurrent' && value === true) {
             newExperiences[index] = { ...newExperiences[index], isCurrent: true, endDate: null };
         } else {
             newExperiences[index] = { ...newExperiences[index], [field]: value };
         }
-        
+
         setFormData({ ...formData, experiences: newExperiences });
     };
 
     const handleAddExperience = () => {
-        if (!formData) {return;}
+        if (!formData) { return; }
         const newExp: Experience = {
             id: Date.now().toString(),
             profileId: formData.id,
@@ -156,15 +156,15 @@ useEffect(() => {
     };
 
     const handleRemoveExperience = (index: number) => {
-        if (!formData?.experiences) {return;}
+        if (!formData?.experiences) { return; }
         const newExp = formData.experiences.filter((_, i) => i !== index);
         setFormData({ ...formData, experiences: newExp });
     };
 
     const handleEducationChange = (index: number, field: keyof Education, value: string | boolean | null) => {
-        if (!formData?.educations) {return;}
+        if (!formData?.educations) { return; }
         const newEdu = [...formData.educations];
-        
+
         if (field === 'isCurrent' && value === true) {
             newEdu[index] = { ...newEdu[index], isCurrent: true, endDate: null };
         } else {
@@ -175,7 +175,7 @@ useEffect(() => {
     };
 
     const handleAddEducation = () => {
-        if (!formData) {return;}
+        if (!formData) { return; }
         const newEdu: Education = {
             id: Date.now().toString(),
             profileId: formData.id,
@@ -195,19 +195,19 @@ useEffect(() => {
     };
 
     const handleRemoveEducation = (index: number) => {
-        if (!formData?.educations) {return;}
+        if (!formData?.educations) { return; }
         const newEdu = formData.educations.filter((_, i) => i !== index);
         setFormData({ ...formData, educations: newEdu });
     };
 
     const handleRemoveSkill = (indexToRemove: number) => {
-        if (!formData) {return;}
+        if (!formData) { return; }
         const updatedSkills = formData.skills ? formData.skills.filter((_, index) => index !== indexToRemove) : [];
         setFormData({ ...formData, skills: updatedSkills });
     };
 
     const handleAddSkill = () => {
-        if (!formData || !newSkillName.trim()) {return;}
+        if (!formData || !newSkillName.trim()) { return; }
         const newSkillObj: Skill = {
             id: Date.now().toString(),
             profileId: formData.id,
@@ -223,13 +223,13 @@ useEffect(() => {
     };
 
     const handleRemoveLang = (indexToRemove: number) => {
-        if (!formData) {return;}
+        if (!formData) { return; }
         const updatedLangs = formData.languages ? formData.languages.filter((_, index) => index !== indexToRemove) : [];
         setFormData({ ...formData, languages: updatedLangs });
     };
 
     const handleAddLang = () => {
-        if (!formData || !newLangName.trim()) {return;}
+        if (!formData || !newLangName.trim()) { return; }
         const newLangObj: LanguageProficiency = {
             id: Date.now().toString(),
             profileId: formData.id,
@@ -243,7 +243,7 @@ useEffect(() => {
     };
 
     return (
-        <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 ${darkMode ? 'dark' : ''}`}>
+        <div className={`h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 ${darkMode ? 'dark' : ''}`}>
             <div className="fixed inset-0 z-0 overflow-hidden">
                 <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500 rounded-full opacity-100 test-animation" />
             </div>
@@ -265,7 +265,7 @@ useEffect(() => {
 
             {/* Main Content area */}
             <div className="flex flex-col items-center justify-center py-2 w-full relative mt-8 md:mt-0">
-                
+
 
                 {/* Profile Photo */}
                 <div className="mb-1 relative group">
@@ -280,11 +280,11 @@ useEffect(() => {
                 <h1 className="text-gray-900 dark:text-white text-2xl mt-2">
                     <strong>{profileData?.firstName ?? 'John'} {profileData?.lastName ?? 'Doe'}</strong>
                 </h1>
-                
+
                 <div className="flex items-center gap-2 mt-1 h-8">
-                        <span className="text-gray-600 dark:text-gray-400 text-lg">
-                            {profileData?.jobTitle ?? 'No job title'}
-                        </span>
+                    <span className="text-gray-600 dark:text-gray-400 text-lg">
+                        {profileData?.jobTitle ?? 'No job title'}
+                    </span>
                 </div>
             </div>
 
@@ -302,7 +302,7 @@ useEffect(() => {
                                 </div>
                                 <div className="flex justify-between gap-1.5 items-center h-8">
                                     <span className="text-gray-600 dark:text-gray-300">Country:</span>
-                                    
+
                                 </div>
                                 <div className="flex justify-between gap-1.5 items-center h-8">
                                     <span className="text-gray-600 dark:text-gray-300">City:</span>
@@ -332,12 +332,12 @@ useEffect(() => {
 
                     {/* COLUMNA DERECHA */}
                     <div className="w-full md:w-1/2 flex flex-col gap-6">
-                        
+
                         {/* Bio & Department */}
                         <div className="flex flex-col gap-3 w-full">
                             <div className="flex flex-col gap-1 w-full">
                                 <span className="text-gray-900 dark:text-white"><strong>Bio:</strong></span>
-                                    <span className="text-gray-400 text-sm italic">{profileData?.bio ?? 'No bio yet'}</span>
+                                <span className="text-gray-400 text-sm italic">{profileData?.bio ?? 'No bio yet'}</span>
                             </div>
                             <div className="flex justify-between gap-1.5 items-center h-8 border-t border-gray-200 dark:border-gray-700 pt-2">
                                 <span className="text-gray-900 dark:text-white"><strong>Department:</strong></span>
@@ -349,19 +349,19 @@ useEffect(() => {
                             <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-1">
                                 <span className="text-gray-900 dark:text-white"><strong>Experience:</strong></span>
                             </div>
-                            
+
                             <div className="flex flex-col gap-4">
                                 {(isEditing ? formData?.experiences : profileData?.experiences)?.map((exp, index) => (
                                     <div key={exp.id || index} className="flex flex-col gap-1 border-l-2 border-blue-300 dark:border-blue-600 pl-3 relative group">
                                         (
-                                            <>
-                                                <span className="text-gray-800 dark:text-gray-200 font-semibold text-sm">{exp.jobTitle}</span>
-                                                <span className="text-gray-600 dark:text-gray-400 text-sm">{exp.companyName}</span>
-                                                <span className="text-gray-400 dark:text-gray-500 text-xs flex items-center gap-1">
-                                                    <Calendar size={12}/>
-                                                    {new Date(exp.startDate).getFullYear()} - {exp.isCurrent ? 'Present' : (exp.endDate ? new Date(exp.endDate).getFullYear() : '')}
-                                                </span>
-                                            </>
+                                        <>
+                                            <span className="text-gray-800 dark:text-gray-200 font-semibold text-sm">{exp.jobTitle}</span>
+                                            <span className="text-gray-600 dark:text-gray-400 text-sm">{exp.companyName}</span>
+                                            <span className="text-gray-400 dark:text-gray-500 text-xs flex items-center gap-1">
+                                                <Calendar size={12} />
+                                                {new Date(exp.startDate).getFullYear()} - {exp.isCurrent ? 'Present' : (exp.endDate ? new Date(exp.endDate).getFullYear() : '')}
+                                            </span>
+                                        </>
                                     </div>
                                 ))}
                                 {(!profileData?.experiences || profileData.experiences.length === 0) && (
@@ -370,7 +370,7 @@ useEffect(() => {
                             </div>
                         </div>
 
-                         {/* --- EDUCATION EDITABLE CON FECHAS --- */}
+                        {/* --- EDUCATION EDITABLE CON FECHAS --- */}
                         <div className="flex flex-col gap-2 w-full">
                             <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-1">
                                 <span className="text-gray-900 dark:text-white"><strong>Education:</strong></span>
@@ -381,17 +381,17 @@ useEffect(() => {
                                         {isEditing ? (
                                             <>
                                                 <button className="absolute -right-2 top-0 text-red-400 hover:text-red-600" onClick={() => handleRemoveEducation(index)}>
-                                                    <Trash2 size={14}/>
+                                                    <Trash2 size={14} />
                                                 </button>
 
-                                                <input 
-                                                    className="font-semibold text-sm bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 w-full mb-1" 
+                                                <input
+                                                    className="font-semibold text-sm bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 w-full mb-1"
                                                     placeholder="Degree"
                                                     value={edu.degree}
                                                     onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
                                                 />
-                                                <input 
-                                                    className="text-sm bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 w-full mb-1" 
+                                                <input
+                                                    className="text-sm bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1 w-full mb-1"
                                                     placeholder="School"
                                                     value={edu.school}
                                                     onChange={(e) => handleEducationChange(index, 'school', e.target.value)}
@@ -401,7 +401,7 @@ useEffect(() => {
                                                 <div className="flex flex-wrap items-center gap-2 mt-1">
                                                     <div className="flex items-center gap-1">
                                                         <span className="text-xs text-gray-500">Start:</span>
-                                                        <input 
+                                                        <input
                                                             className="text-xs bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1"
                                                             type="date"
                                                             value={formatDateForInput(edu.startDate)}
@@ -410,7 +410,7 @@ useEffect(() => {
                                                     </div>
 
                                                     <label className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">
-                                                        <input 
+                                                        <input
                                                             checked={edu.isCurrent}
                                                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                                             type="checkbox"
@@ -422,7 +422,7 @@ useEffect(() => {
                                                     {!edu.isCurrent && (
                                                         <div className="flex items-center gap-1">
                                                             <span className="text-xs text-gray-500">End:</span>
-                                                            <input 
+                                                            <input
                                                                 className="text-xs bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1"
                                                                 type="date"
                                                                 value={formatDateForInput(edu.endDate)}
@@ -437,7 +437,7 @@ useEffect(() => {
                                                 <span className="text-gray-800 dark:text-gray-200 font-semibold text-sm">{edu.degree}</span>
                                                 <span className="text-gray-600 dark:text-gray-400 text-sm">{edu.school}</span>
                                                 <span className="text-gray-400 dark:text-gray-500 text-xs flex items-center gap-1">
-                                                    <Calendar size={12}/>
+                                                    <Calendar size={12} />
                                                     {new Date(edu.startDate).getFullYear()} - {edu.isCurrent ? 'Present' : (edu.endDate ? new Date(edu.endDate).getFullYear() : '')}
                                                 </span>
                                             </>
@@ -446,7 +446,7 @@ useEffect(() => {
                                 ))}
                                 {isEditing && (
                                     <button className="text-blue-500 text-sm flex items-center gap-1 hover:underline mt-1" onClick={handleAddEducation}>
-                                        <Plus size={14}/> Add Education
+                                        <Plus size={14} /> Add Education
                                     </button>
                                 )}
                                 {!isEditing && (!profileData?.educations || profileData.educations.length === 0) && (
@@ -460,7 +460,7 @@ useEffect(() => {
                             <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-1">
                                 <span className="text-gray-900 dark:text-white"><strong>Skills:</strong></span>
                             </div>
-                            
+
                             <div className="flex flex-col gap-1">
                                 {(isEditing ? formData?.skills : profileData?.skills)?.map((skill, index) => (
                                     <div key={skill.id || index} className="flex justify-between items-center group">
@@ -475,12 +475,12 @@ useEffect(() => {
                                         </div>
                                     </div>
                                 ))}
-                                
+
                                 {isEditing && (
                                     <div className="mt-2 flex gap-2 items-center">
-                                        <input 
-                                            className="flex-1 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 outline-none dark:text-white" 
-                                            placeholder="New Skill..." 
+                                        <input
+                                            className="flex-1 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 outline-none dark:text-white"
+                                            placeholder="New Skill..."
                                             type="text"
                                             value={newSkillName}
                                             onChange={(e) => setNewSkillName(e.target.value)}
@@ -491,7 +491,7 @@ useEffect(() => {
                                         </button>
                                     </div>
                                 )}
-                                
+
                                 {!isEditing && (!profileData?.skills || profileData.skills.length === 0) && (
                                     <span className="text-gray-400 text-sm">No skills added</span>
                                 )}
@@ -503,7 +503,7 @@ useEffect(() => {
                             <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-1">
                                 <span className="text-gray-900 dark:text-white"><strong>Languages:</strong></span>
                             </div>
-                            
+
                             <div className="flex flex-col gap-1">
                                 {(isEditing ? formData?.languages : profileData?.languages)?.map((lang, index) => (
                                     <div key={lang.id || index} className="flex justify-between items-center">
@@ -521,14 +521,14 @@ useEffect(() => {
 
                                 {isEditing && (
                                     <div className="mt-2 flex gap-2 items-center">
-                                        <input 
-                                            className="flex-1 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 outline-none dark:text-white" 
-                                            placeholder="Language..." 
+                                        <input
+                                            className="flex-1 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 outline-none dark:text-white"
+                                            placeholder="Language..."
                                             type="text"
                                             value={newLangName}
                                             onChange={(e) => setNewLangName(e.target.value)}
                                         />
-                                        <select 
+                                        <select
                                             className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 outline-none dark:text-white w-24"
                                             value={newLangProf}
                                             onChange={(e) => setNewLangProf(e.target.value)}

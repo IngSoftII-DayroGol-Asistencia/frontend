@@ -41,7 +41,7 @@ export function RegisterEnterprise() {
         window.location.href = '/';
     };
 
-    
+
     const handleJoinSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -61,16 +61,17 @@ export function RegisterEnterprise() {
             return;
         }
         await authService.createEnterprise(createFormData)
-        .then(() => {
-            setHandleSuccess(true);
-            setSuccessMessage("Enterprise created successfully!");
-            // void navigate('/home');
-        })
-        .catch((error) => {
-            console.error("Error creating enterprise:", error);
-            handleErrorsForm("Failed to create enterprise. Please try again.");
-            return;
-        });
+            .then(async () => {
+                await authService.seedEnterprisePermissions();
+                setHandleSuccess(true);
+                setSuccessMessage("Enterprise created successfully!");
+                // void navigate('/home');
+            })
+            .catch((error) => {
+                console.error("Error creating enterprise:", error);
+                handleErrorsForm("Failed to create enterprise. Please try again.");
+                return;
+            });
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -79,8 +80,8 @@ export function RegisterEnterprise() {
     };
 
     return (
-        <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 ${darkMode ? 'dark' : ''}`}>
-            
+        <div className={`h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 ${darkMode ? 'dark' : ''}`}>
+
             {/* Background Effects */}
             <div className="absolute inset-0 bg-gradient-to-br from-white-500/20 via-blue-500/20 to-purple-500/20 dark:from-green-600/30 dark:via-blue-600/30 dark:to-purple-600/30 pointer-events-none" />
             <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gray-500/30 rounded-full blur-3xl animate-pulse pointer-events-none" />
@@ -98,7 +99,7 @@ export function RegisterEnterprise() {
 
             <div className="flex flex-col items-center justify-center py-2 w-full relative mt-8 md:mt-0 z-10 min-h-[80vh]">
                 <div className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border border-white/20 dark:border-gray-700/50 rounded-2xl p-8 shadow-2xl w-full max-w-2xl transition-all duration-300">
-                    
+
                     <div className="mb-8 text-center">
                         <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">
                             {viewMode === 'initial' && "Create or join enterprise"}
@@ -116,8 +117,8 @@ export function RegisterEnterprise() {
                     {viewMode === 'initial' && (
                         <div className="flex flex-col md:flex-row w-full gap-4 justify-center py-4">
                             <div className="w-full md:w-1/2 flex flex-col gap-6">
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     className="w-full h-12 text-lg"
                                     onClick={() => setViewMode('join')}
                                 >
@@ -125,7 +126,7 @@ export function RegisterEnterprise() {
                                 </Button>
                             </div>
                             <div className="w-full md:w-1/2 flex flex-col gap-6">
-                                <Button 
+                                <Button
                                     className="w-full h-12 text-lg"
                                     onClick={() => setViewMode('create')}
                                 >
@@ -152,9 +153,9 @@ export function RegisterEnterprise() {
                                 />
                             </div>
                             <div className="flex gap-4 pt-2">
-                                <Button 
-                                    variant="outline" 
-                                    type="button" 
+                                <Button
+                                    variant="outline"
+                                    type="button"
                                     className="w-1/2"
                                     onClick={() => setViewMode('initial')}
                                 >
@@ -216,16 +217,16 @@ export function RegisterEnterprise() {
                                 />
                             </div>
                             <div className="flex justify-between pt-4 w-full">
-                                <Button 
-                                    variant="outline" 
-                                    type="button" 
-                                    className="w-32" 
+                                <Button
+                                    variant="outline"
+                                    type="button"
+                                    className="w-32"
                                     onClick={() => setViewMode('initial')}
                                 >
                                     Back
-                                </Button>               
-                                <Button 
-                                    type="submit" 
+                                </Button>
+                                <Button
+                                    type="submit"
                                     className="w-1/2 px-8 "
                                     onClick={handleCreateSubmit}
                                 >
@@ -240,8 +241,8 @@ export function RegisterEnterprise() {
                         </form>
                     )}
                 </div>
-                    <AlertDialog open={handleSuccess} onOpenChange={setHandleSuccess}>
-                        <AlertDialogContent>
+                <AlertDialog open={handleSuccess} onOpenChange={setHandleSuccess}>
+                    <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Enterprise process done!</AlertDialogTitle>
                             <AlertDialogDescription>
@@ -257,8 +258,8 @@ export function RegisterEnterprise() {
                                 Ok
                             </AlertDialogAction>
                         </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </div>
     );

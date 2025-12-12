@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { LoginPage } from "./components/LoginPage";
 import { SignupPage } from "./components/SignupPage";
@@ -11,17 +12,55 @@ import { VideoCallContent } from "./components/VideoCallContent";
 import { DashboardContent } from "./components/DashboardContent";
 import { MessagesContent } from "./components/MessagesContent";
 import { authService } from "./api/services/auth.service";
-import { MyProfile, Profile } from "./components/MyProfile";
+import { MyProfile } from "./components/MyProfile";
 import { UserEnterpriseResponse } from "./interfaces/auth";
 import { RegisterEnterprise } from "./components/RegisterEnterprise";
 import { Roles } from "./components/Roles";
 import { JoinRequest } from "./components/JoinRequest";
 import { AnyProfile } from "./components/AnyProfile";
 
+// Componente para refrescar el token en cada cambio de ruta
+function TokenRefresher() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Escuchar evento global de 'unauthorized'
+    const handleUnauthorized = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('currentUser');
+      navigate('/');
+    };
+
+    window.addEventListener('unauthorized', handleUnauthorized);
+
+    // Evitar refrescar en login/signup si no hay token (opcional, pero buena práctica)
+    const token = localStorage.getItem('token');
+    if (token) {
+      authService.refreshToken().catch((err: any) => {
+        console.error("Token refresh failed", err);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (err?.status === 401) {
+          handleUnauthorized();
+        }
+      });
+    }
+
+    return () => {
+      window.removeEventListener('unauthorized', handleUnauthorized);
+    };
+  }, [location, navigate]);
+
+  return null;
+}
+
 // Componente para el layout principal (después del login)
 function MainLayout() {
   const [darkMode, setDarkMode] = useState(false);
-  const [activeSection, setActiveSection] = useState('feed');
+  const location = useLocation();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  const [activeSection, setActiveSection] = useState((location.state as { section?: string })?.section || 'feed');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -108,6 +147,7 @@ function MainLayout() {
 export default function App() {
   return (
     <BrowserRouter>
+      <TokenRefresher />
       <div className="h-screen">
         <Routes>
           <Route path="/" element={<LoginPage />} />

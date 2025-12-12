@@ -13,7 +13,7 @@ export function JoinRequest() {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const [joinRequests, setJoinRequests] = useState<EnterpriseJoinRequestResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    
+
     // Estado para la notificación
     const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -21,7 +21,7 @@ export function JoinRequest() {
     const DEFAULT_PROFILE_IMG = "https://http2.mlstatic.com/D_NQ_NP_632686-MCO77519551393_072024-O.webp";
 
     const handleSidebarNavigation = (section: string) => {
-        void navigate(`/${section}`);
+        void navigate('/home', { state: { section: section } });
     };
 
     const toggleDarkMode = () => setDarkMode(!darkMode);
@@ -72,11 +72,11 @@ export function JoinRequest() {
     const handleApprove = async (id: string) => {
         try {
             const response: HandleEnterpriseJoinRequestOutput = await authService.processJoinRequest(id, true);
-            
+
             showNotification(response.message || "Solicitud aprobada correctamente", 'success');
-            
+
             setJoinRequests(prev => prev.filter(req => req.id !== id));
-            
+
         } catch (error) {
             console.error(error);
             showNotification("Error al aprobar la solicitud", 'error');
@@ -101,20 +101,19 @@ export function JoinRequest() {
     };
 
     return (
-        <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 ${darkMode ? 'dark' : ''}`}>
-            
+        <div className={`h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 ${darkMode ? 'dark' : ''}`}>
+
             {/* NOTIFICACIÓN FLOTANTE (TOAST) */}
             {notification && (
-                <div className={`fixed bottom-5 right-5 z-[100] flex items-center p-4 mb-4 text-sm rounded-lg shadow-lg transition-all duration-300 transform translate-y-0 ${
-                    notification.type === 'success' 
-                        ? 'text-green-800 bg-green-50 dark:bg-gray-800 dark:text-green-400 border border-green-300 dark:border-green-800' 
-                        : 'text-red-800 bg-red-50 dark:bg-gray-800 dark:text-red-400 border border-red-300 dark:border-red-800'
-                }`} role="alert">
+                <div className={`fixed bottom-5 right-5 z-[100] flex items-center p-4 mb-4 text-sm rounded-lg shadow-lg transition-all duration-300 transform translate-y-0 ${notification.type === 'success'
+                    ? 'text-green-800 bg-green-50 dark:bg-gray-800 dark:text-green-400 border border-green-300 dark:border-green-800'
+                    : 'text-red-800 bg-red-50 dark:bg-gray-800 dark:text-red-400 border border-red-300 dark:border-red-800'
+                    }`} role="alert">
                     <svg className="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                         {notification.type === 'success' ? (
-                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" />
                         ) : (
-                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z" />
                         )}
                     </svg>
                     <span className="sr-only">Info</span>
@@ -170,10 +169,10 @@ export function JoinRequest() {
                     ) : joinRequests.length === 0 ? (
                         <div className="mt-12 flex flex-col items-center justify-center py-16 px-4 bg-white/50 dark:bg-gray-800/50 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700 backdrop-blur-sm transition-all hover:border-violet-200 dark:hover:border-violet-900/50">
                             <div className="h-20 w-20 bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center mb-6 shadow-sm group">
-                                <svg 
-                                    className="w-10 h-10 text-violet-600 dark:text-violet-400" 
-                                    fill="none" 
-                                    stroke="currentColor" 
+                                <svg
+                                    className="w-10 h-10 text-violet-600 dark:text-violet-400"
+                                    fill="none"
+                                    stroke="currentColor"
                                     viewBox="0 0 24 24"
                                 >
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -199,17 +198,17 @@ export function JoinRequest() {
                                                 {/* Avatar */}
                                                 <div className="relative">
                                                     <img
-                                                            alt="Profile"
-                                                            className="border-4 border-gray-300 dark:border-gray-600 rounded-full"
-                                                            src={request.user.profile?.profilePhotoUrl ?? DEFAULT_PROFILE_IMG}
-                                                            style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '50%' }}
-                                                        />
+                                                        alt="Profile"
+                                                        className="border-4 border-gray-300 dark:border-gray-600 rounded-full"
+                                                        src={request.user.profile?.profilePhotoUrl ?? DEFAULT_PROFILE_IMG}
+                                                        style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '50%' }}
+                                                    />
                                                     <span className="absolute bottom-0 right-0 block h-3.5 w-3.5 rounded-full ring-2 ring-white dark:ring-gray-800 bg-yellow-400" title="Pendiente" />
                                                 </div>
 
                                                 {/* Info Principal */}
                                                 <div className="flex-1 min-w-0">
-                                                    <h3 
+                                                    <h3
                                                         onClick={() => handleViewProfile(request.user.id)}
                                                         className="text-lg font-bold text-gray-900 dark:text-white truncate cursor-pointer hover:text-purple-600 dark:hover:text-purple-400 hover:underline transition-all"
                                                     >

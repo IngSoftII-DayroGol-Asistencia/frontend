@@ -14,7 +14,7 @@ import {
 import { SearchModal } from "./SearchModal";
 import type { UserProfileResponse } from "../interfaces/user";
 import type { EnterpriseCreationResponse, UserEnterpriseResponse } from "../interfaces/auth";
-import { UserEnterprise } from "../interfaces/auth";
+import { hasPermission } from "../utils/permissionUtils";
 
 interface AppNavbarProps {
   darkMode: boolean;
@@ -26,7 +26,7 @@ interface AppNavbarProps {
 export function AppNavbar({ darkMode, toggleDarkMode, onLogout, onMobileMenuToggle }: AppNavbarProps) {
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [profileData, setProfileData] = useState<UserProfileResponse | null>(null);
-  const [enterpriseData, setEnterpriseData] = useState<EnterpriseCreationResponse | null>(() => {
+  const [enterpriseData] = useState<EnterpriseCreationResponse | null>(() => {
     const stored = localStorage.getItem('currentEnterprise');
     return stored ? (JSON.parse(stored) as EnterpriseCreationResponse) : null;
   });
@@ -120,7 +120,7 @@ export function AppNavbar({ darkMode, toggleDarkMode, onLogout, onMobileMenuTogg
                 <DropdownMenuLabel> {`${enterpriseData?.name ?? ""} \n ${enterpriseData?.id ?? ""}`} </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => window.location.href = '/profile'}>Profile</DropdownMenuItem>
-                {userRelationEnterprise.enterprises[0].isOwner && (
+                {(userRelationEnterprise.enterprises[0].isOwner || hasPermission('ROLES', ['READ', 'UPDATE', 'MANAGE', 'CREATE', 'DELETE'])) && (
                   <DropdownMenuItem onClick={() => window.location.href = '/roles'}>Roles</DropdownMenuItem>
                 )}
                 {userRelationEnterprise.enterprises[0].isOwner &&
