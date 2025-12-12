@@ -187,6 +187,17 @@ export function FeedContent() {
     }
   };
 
+  const handleProfileClick = (e: React.MouseEvent, userId: string) => {
+    e.stopPropagation();
+    localStorage.setItem('userIdSearch', userId);
+    // Using window.location.href or navigate. 
+    // Since App.tsx has BrowserRouter, we can use navigate if we imported useNavigate, 
+    // but FeedContent is inside MainLayout inside App?
+    // Current file doesn't use useNavigate. Let's add it or use window.assign?
+    // Better to use useNavigate properly.
+    window.location.href = '/user-profile';
+  };
+
   const handleHidePost = (postId: string) => {
     const newHidden = [...hiddenPostIds, postId];
     setHiddenPostIds(newHidden);
@@ -235,13 +246,21 @@ export function FeedContent() {
                 <CardHeader className="p-4 md:p-6">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex gap-2 md:gap-3 min-w-0 flex-1">
-                      <Avatar className="w-10 h-10 md:w-12 md:h-12 shrink-0">
+                      <Avatar
+                        className="w-10 h-10 md:w-12 md:h-12 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={(e: React.MouseEvent) => handleProfileClick(e, post.user_id)}
+                      >
                         <AvatarImage src={post.authorAvatar} />
                         <AvatarFallback>{post.authorName?.[0] || "?"}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h4 className="truncate font-medium">{post.authorName}</h4>
+                          <h4
+                            className="truncate font-medium cursor-pointer hover:underline hover:text-blue-500 transition-colors"
+                            onClick={(e) => handleProfileClick(e, post.user_id)}
+                          >
+                            {post.authorName}
+                          </h4>
                           {post.trending && (
                             <Badge variant="secondary" className="gap-1 shrink-0">
                               <TrendingUp className="w-3 h-3" />

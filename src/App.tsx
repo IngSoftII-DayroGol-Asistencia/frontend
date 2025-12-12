@@ -143,8 +143,8 @@ function MainLayout() {
           onMobileMenuToggle={toggleMobileSidebar}
         />
 
-        <div className="flex-1 flex overflow-hidden">
-          <div className="hidden md:block">
+        <div className="flex-1 flex overflow-hidden pt-16">
+          <div className={`hidden md:block h-full transition-all duration-300 border-r border-white/20 dark:border-gray-700/50 ${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0`}>
             <AppSidebar
               activeSection={activeSection}
               onSectionChange={setActiveSection}

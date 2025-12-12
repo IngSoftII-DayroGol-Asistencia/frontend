@@ -18,9 +18,9 @@ export function AppSidebar({ activeSection, onSectionChange, collapsed, onToggle
   ];
 
   return (
-    <aside className={`h-full pt-24 bg-white dark:bg-gray-900 border-r border-white/20 dark:border-gray-700/50 flex flex-col transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'
+    <aside className={`h-full bg-white dark:bg-gray-900 flex flex-col transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'
       }`}>
-      <div className="flex-1 p-3 space-y-2">
+      <div className="flex-1 p-3 space-y-2 pt-6">
         <TooltipProvider delayDuration={0}>
           {sections.map((section) => {
             const Icon = section.icon;
@@ -61,20 +61,31 @@ export function AppSidebar({ activeSection, onSectionChange, collapsed, onToggle
       </div>
 
       <div className="p-3 border-t border-white/20 dark:border-gray-700/50">
-        <Button
-          variant="ghost"
-          className={`w-full gap-3 ${collapsed ? 'justify-center px-0' : 'justify-start'}`}
-          onClick={onToggleCollapse}
-        >
-          {collapsed ? (
-            <ChevronRight className="w-5 h-5 shrink-0" />
-          ) : (
-            <>
-              <ChevronLeft className="w-5 h-5 shrink-0" />
-              <span>Collapse</span>
-            </>
-          )}
-        </Button>
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                className={`w-full gap-3 hover:bg-blue-500/10 dark:hover:bg-blue-500/20 transition-colors ${collapsed ? 'justify-center px-0' : 'justify-start'}`}
+                onClick={onToggleCollapse}
+              >
+                {collapsed ? (
+                  <ChevronRight className="w-5 h-5 shrink-0" />
+                ) : (
+                  <>
+                    <ChevronLeft className="w-5 h-5 shrink-0" />
+                    <span>Collapse</span>
+                  </>
+                )}
+              </Button>
+            </TooltipTrigger>
+            {collapsed && (
+              <TooltipContent side="right">
+                Expand
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </aside>
   );

@@ -26,6 +26,7 @@ interface FeedPostDetailProps {
 }
 
 interface CommentWithUser extends ApiComment {
+  user_name: string;
   authorName?: string;
   authorAvatar?: string;
 }
@@ -86,8 +87,9 @@ export function FeedPostDetail({ post, open, onOpenChange, onHide }: FeedPostDet
         }
       });
 
-      const mappedComments = apiComments.map(c => ({
+      const mappedComments: CommentWithUser[] = apiComments.map(c => ({
         ...c,
+        user_name: c.user_name,
         authorName: userMap[c.user_name]?.name || "Unknown User",
         authorAvatar: userMap[c.user_name]?.avatar
       }));
@@ -187,6 +189,12 @@ export function FeedPostDetail({ post, open, onOpenChange, onHide }: FeedPostDet
     }
   };
 
+  const handleProfileClick = (e: React.MouseEvent, userId: string) => {
+    e.stopPropagation();
+    localStorage.setItem('userIdSearch', userId);
+    window.location.href = '/user-profile';
+  };
+
   if (!post) return null;
 
   // Safe access for optional properties if they don't exist in Post type (handled via casting or optional chaining)
@@ -204,13 +212,21 @@ export function FeedPostDetail({ post, open, onOpenChange, onHide }: FeedPostDet
             {/* Post Header */}
             <div className="flex items-start justify-between gap-2">
               <div className="flex gap-3 min-w-0 flex-1">
-                <Avatar className="w-12 h-12 shrink-0">
+                <Avatar
+                  className="w-12 h-12 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={(e) => handleProfileClick(e, post.user_id)}
+                >
                   <AvatarImage src={post.authorAvatar} />
                   <AvatarFallback>{post.authorName?.[0] || "?"}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h4 className="truncate">{post.authorName}</h4>
+                    <h4
+                      className="truncate cursor-pointer hover:underline hover:text-blue-500 transition-colors"
+                      onClick={(e: React.MouseEvent) => handleProfileClick(e, post.user_id)}
+                    >
+                      {post.authorName}
+                    </h4>
                     {post.trending && (
                       <Badge variant="secondary" className="gap-1 shrink-0">
                         <TrendingUp className="w-3 h-3" />
@@ -304,13 +320,21 @@ export function FeedPostDetail({ post, open, onOpenChange, onHide }: FeedPostDet
                 ) : (
                   comments.map((comment) => (
                     <div key={comment.id} className="flex gap-3">
-                      <Avatar className="w-8 h-8 shrink-0">
+                      <Avatar
+                        className="w-8 h-8 shrink-0 cursor-pointer hover:opacity-80"
+                        onClick={(e: React.MouseEvent) => handleProfileClick(e, comment.user_name)}
+                      >
                         <AvatarImage src={comment.authorAvatar} />
                         <AvatarFallback>{comment.authorName?.[0] || "?"}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{comment.authorName}</span>
+                          <span
+                            className="text-sm font-medium cursor-pointer hover:underline hover:text-blue-500"
+                            onClick={(e: React.MouseEvent) => handleProfileClick(e, comment.user_name)}
+                          >
+                            {comment.authorName}
+                          </span>
                           <span className="text-xs text-muted-foreground">{new Date(comment.created_at).toLocaleString()}</span>
                         </div>
                         <p className="text-sm">{comment.content}</p>
