@@ -188,3 +188,20 @@
 html {
   font-size: var(--font-size);
 }
+
+.min-h-screen {
+  min-height: 100vh;
+}
+.h-fullscreen {
+  height: 100vh;
+}
+
+/* Make Button components show pointer on hover; respect disabled state */
+[data-slot="button"] {
+  cursor: pointer;
+}
+
+[data-slot="button"][disabled],
+[data-slot="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}

@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import PhoneInputField from "./assets/PhoneInput";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import PhoneInputField from "../components/assets/PhoneInput";
 import { useState } from "react";
 import { authService } from "../api/services/auth.service";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle} from "./ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle} from "../components/ui/alert-dialog";
 
 export function SignupPage() {
   const navigate = useNavigate();

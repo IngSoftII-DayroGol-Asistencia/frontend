@@ -1,8 +1,8 @@
 import { Video, Phone, Users, Calendar } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader } from "./ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader } from "../components/ui/card";
 
 export function VideoCallContent() {
   const upcomingCalls = [
@@ -61,7 +61,6 @@ export function VideoCallContent() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-        {/* Quick Actions */}
         <Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-white/20 dark:border-gray-700/50">
           <CardHeader>
             <h3>Quick Actions</h3>
@@ -99,7 +98,6 @@ export function VideoCallContent() {
           </CardContent>
         </Card>
 
-        {/* Recent Contacts */}
         <Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-white/20 dark:border-gray-700/50">
           <CardHeader>
             <h3>Recent Contacts</h3>
@@ -131,7 +129,6 @@ export function VideoCallContent() {
         </Card>
       </div>
 
-      {/* Upcoming Meetings */}
       <Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-white/20 dark:border-gray-700/50">
         <CardHeader>
           <h3>Upcoming Meetings</h3>

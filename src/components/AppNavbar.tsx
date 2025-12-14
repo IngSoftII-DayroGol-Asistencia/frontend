@@ -44,7 +44,7 @@ export function AppNavbar({ darkMode, toggleDarkMode, onLogout, onMobileMenuTogg
 
   return (
     <>
-      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-b border-white/20 dark:border-gray-700/50">
+      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-b border-white/20 dark:border-gray-700/50" style={{ ['--navbar-height' as any]: '4rem' }}>
         <div className="flex items-center justify-between h-16 px-4 md:px-6">
           {/* Mobile menu button + Logo */}
           <div className="flex items-center gap-2 md:gap-3">

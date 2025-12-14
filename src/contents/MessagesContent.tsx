@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Search, Send, MoreHorizontal, Hash, Lock, Users, Plus, Phone, Video, Pin } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { ScrollArea } from "./ui/scroll-area";
-import { Separator } from "./ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { ScrollArea } from "../components/ui/scroll-area";
+import { Separator } from "../components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../components/ui/tooltip";
 
 interface Channel {
   id: number;
@@ -80,7 +80,6 @@ export function MessagesContent() {
 
   const handleSendMessage = () => {
     if (messageText.trim()) {
-      // Handle message sending
       setMessageText("");
     }
   };
@@ -92,9 +91,7 @@ export function MessagesContent() {
 
   return (
     <div className="flex h-full w-full">
-      {/* Channel List Sidebar */}
       <div className={`${mobileShowChat ? 'hidden md:flex' : 'flex'} w-full md:w-80 flex-col border-r border-white/20 dark:border-gray-700/50 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70`}>
-        {/* Sidebar Header */}
         <div className="p-4 border-b border-white/20 dark:border-gray-700/50">
           <div className="flex items-center justify-between mb-3">
             <h2>Messages</h2>
@@ -111,10 +108,8 @@ export function MessagesContent() {
           </div>
         </div>
 
-        {/* Channels List */}
         <ScrollArea className="flex-1">
           <div className="p-2 space-y-1">
-            {/* Channels Section */}
             <div className="px-3 py-2 text-xs text-muted-foreground">Channels</div>
             {channels.filter(c => c.type !== "dm").map((channel) => (
               <button
@@ -146,7 +141,6 @@ export function MessagesContent() {
               </button>
             ))}
 
-            {/* Direct Messages Section */}
             <div className="px-3 py-2 text-xs text-muted-foreground mt-4">Direct Messages</div>
             {channels.filter(c => c.type === "dm").map((channel) => (
               <button
@@ -185,9 +179,7 @@ export function MessagesContent() {
         </ScrollArea>
       </div>
 
-      {/* Chat Area */}
       <div className={`${mobileShowChat ? 'flex' : 'hidden md:flex'} flex-1 flex-col`}>
-        {/* Chat Header */}
         <div className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-white/20 dark:border-gray-700/50 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70">
           <div className="flex items-center gap-3">
             <Button
@@ -270,7 +262,6 @@ export function MessagesContent() {
           </div>
         </div>
 
-        {/* Messages Area */}
         <ScrollArea className="flex-1 p-4 md:p-6">
           <div className="max-w-4xl mx-auto space-y-4">
             {messages.map((message, index) => {
@@ -319,7 +310,6 @@ export function MessagesContent() {
           </div>
         </ScrollArea>
 
-        {/* Message Input */}
         <div className="p-4 md:p-6 border-t border-white/20 dark:border-gray-700/50 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70">
           <div className="max-w-4xl mx-auto flex gap-2">
             <Input

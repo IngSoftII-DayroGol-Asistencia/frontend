@@ -1,21 +1,21 @@
 import { useEffect, useState } from "react";
 import { MessageSquare, MoreHorizontal, ThumbsUp, ThumbsDown, TrendingUp, EyeOff } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
-import { FeedPostDetail } from "./FeedPostDetail";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "../components/ui/card";
+import { FeedPostDetail } from "../components/FeedPostDetail";
 import { forumService } from "../api/services/forum.service";
 import { authService } from "../api/services/auth.service";
 import { Post as ApiPost, ReactionStats } from "../interfaces/forum.types";
-import { CreatePostModal } from "./CreatePostModal";
+import { CreatePostModal } from "../components/CreatePostModal";
 import { UserEnterpriseResponse } from "../interfaces/auth/userEnterprise.interface";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "../components/ui/dropdown-menu";
 
 
 // Extended Post type for UI (merging API data with UI needs)
@@ -159,14 +159,9 @@ export function FeedContent() {
       // If clicking same reaction, remove it (toggle off)
       if (post.stats?.user_reaction === type) {
         await forumService.removeReaction(orgId, post.id, userId);
-        // After removing, we might need to fetch stats OR just decrement locally if we trust logic.
-        // To be safe and since delete doesn't return stats, let's fetch. 
-        // OR, if the user implies "solamente pasandole org_id, post_id" for getStats is good enough now.
         newStats = await forumService.getReactionStats(orgId, post.id, userId);
 
       } else {
-        // Otherwise, add/change reaction
-        // Use the returned stats directly!
         const response = await forumService.addReaction(orgId, post.id, {
           user_id: userId,
           reaction_type: type
@@ -174,7 +169,6 @@ export function FeedContent() {
         newStats = response;
       }
 
-      // Update local state
       setPosts(prev => prev.map(p => {
         if (p.id === post.id) {
           return { ...p, stats: newStats };
@@ -190,11 +184,6 @@ export function FeedContent() {
   const handleProfileClick = (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
     localStorage.setItem('userIdSearch', userId);
-    // Using window.location.href or navigate. 
-    // Since App.tsx has BrowserRouter, we can use navigate if we imported useNavigate, 
-    // but FeedContent is inside MainLayout inside App?
-    // Current file doesn't use useNavigate. Let's add it or use window.assign?
-    // Better to use useNavigate properly.
     window.location.href = '/user-profile';
   };
 
@@ -203,10 +192,8 @@ export function FeedContent() {
     setHiddenPostIds(newHidden);
     localStorage.setItem('hiddenPosts', JSON.stringify(newHidden));
 
-    // Immediate visual update
     setPosts(prev => prev.filter(p => p.id !== postId));
 
-    // Close detail if open and matches
     if (selectedPost?.id === postId) {
       setPostDetailOpen(false);
       setSelectedPost(null);
@@ -216,7 +203,6 @@ export function FeedContent() {
   return (
     <>
       <div className="max-w-3xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
-        {/* Create Post Trigger */}
         <Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-white/20 dark:border-gray-700/50">
           <CardContent className="pt-4 md:pt-6">
             <div className="flex gap-2 md:gap-3" onClick={() => setCreateModalOpen(true)}>
@@ -231,16 +217,12 @@ export function FeedContent() {
           </CardContent>
         </Card>
 
-        {/* Posts Feed */}
         {loading ? (
           <div className="text-center py-10 text-muted-foreground">Loading updates...</div>
         ) : posts.length === 0 ? (
           <div className="text-center py-10 text-muted-foreground">No posts yet. Be the first to share!</div>
         ) : (
           posts.map((post) => {
-            // Placeholder for reactions count as API provides it in stats endpoint, not list.
-            // Efficient way would be to fetch stats or include in list. list PostOut doesn't have checks.
-            // We'll show 0 or handle logic later if requested.
             return (
               <Card key={post.id} className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-white/20 dark:border-gray-700/50 hover:shadow-lg transition-shadow">
                 <CardHeader className="p-4 md:p-6">
@@ -292,12 +274,10 @@ export function FeedContent() {
                   <h5 className="font-semibold mb-2">{post.title}</h5>
                   <p className="whitespace-pre-line mb-3 text-sm md:text-base">{post.content}</p>
 
-                  {/* Attachments */}
                   {post.attachments && post.attachments.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
                       {post.attachments.map(att => (
                         <div key={att.id} className="relative group overflow-hidden rounded-lg border bg-muted/50">
-                          {/* Simple preview for now */}
                           <a href={att.url} target="_blank" rel="noreferrer" className="block p-2 text-sm text-blue-500 hover:underline">
                             {att.file_name}
                           </a>
@@ -352,10 +332,9 @@ export function FeedContent() {
         onPostCreated={fetchPosts}
       />
 
-      {/* FeedPostDetail - assuming it exists and we can pass selectedPost if compatible or we update it too */}
       {selectedPost && (
-        <FeedPostDetail // You might need to check if FeedPostDetail accepts our extended Post type 
-          post={selectedPost as any} // Casting for now if incompatible, but ideally align types.
+        <FeedPostDetail
+          post={selectedPost as any}
           open={postDetailOpen}
           onOpenChange={setPostDetailOpen}
           onHide={handleHidePost}

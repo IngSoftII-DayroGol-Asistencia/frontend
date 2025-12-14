@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
-import { AppNavbar } from "./AppNavbar";
+import { AppNavbar } from "../components/AppNavbar";
 import { authService } from "../api/services/auth.service";
-import { AppSidebar } from "./AppSidebar";
+import { AppSidebar } from "../components/AppSidebar";
 import { useNavigate } from "react-router-dom";
-import type { EnterpriseCreationResponse, EnterpriseJoinRequestResponse, HandleEnterpriseJoinRequestOutput, EnterpriseUserMembership, UserEnterpriseResponse } from "../interfaces/auth";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Button } from "./ui/button";
-import { UserMinus, ShieldCheck } from "lucide-react";
+import type { EnterpriseCreationResponse, EnterpriseJoinRequestResponse, EnterpriseUserMembership, HandleEnterpriseJoinRequestOutput, UserEnterpriseResponse } from "../interfaces/auth";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Button } from "../components/ui/button";
+import { ShieldCheck, UserMinus } from "lucide-react";
 
 export function JoinRequest() {
-    const [darkMode, setDarkMode] = useState(false);
+    const [darkMode, setDarkMode] = useState<boolean>(() => {
+        try {
+            return localStorage.getItem('darkMode') === 'true';
+        } catch (e) {
+            return false;
+        }
+    });
     const [activeSection] = useState('join-request');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -26,10 +32,24 @@ export function JoinRequest() {
     const DEFAULT_PROFILE_IMG = "https://http2.mlstatic.com/D_NQ_NP_632686-MCO77519551393_072024-O.webp";
 
     const handleSidebarNavigation = (section: string) => {
-        void navigate('/home', { state: { section: section } });
+        void navigate(`/home?section=${encodeURIComponent(section)}`);
     };
 
-    const toggleDarkMode = () => setDarkMode(!darkMode);
+    const toggleDarkMode = () => setDarkMode(prev => !prev);
+
+    useEffect(() => {
+        try {
+            if (darkMode) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('darkMode', 'false');
+            }
+        } catch (e) {
+            // ignore storage errors
+        }
+    }, [darkMode]);
     const toggleSidebarCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
     const toggleMobileSidebar = () => setMobileSidebarOpen(!mobileSidebarOpen);
 
@@ -112,7 +132,7 @@ export function JoinRequest() {
     };
 
     const handleRemoveMember = async (userId: string) => {
-        if (!confirm("Are you sure you want to remove this user from the enterprise?")) return;
+        if (!confirm("Are you sure you want to remove this user from the enterprise?")) {return;}
         try {
             await authService.deleteMemberEnterprise(userId);
             showNotification("Miembro eliminado correctamente", 'success');
@@ -124,7 +144,7 @@ export function JoinRequest() {
     };
 
     const handleTransferOwnership = async (userId: string) => {
-        if (!confirm("Are you sure you want to transfer ownership to this user? You will lose owner privileges.")) return;
+        if (!confirm("Are you sure you want to transfer ownership to this user? You will lose owner privileges.")) {return;}
         try {
             await authService.trasnferEnterpriseOwner(userId);
             showNotification("Propiedad transferida correctamente", 'success');
@@ -169,8 +189,8 @@ export function JoinRequest() {
                 onMobileMenuToggle={toggleMobileSidebar}
             />
 
-            <div className="flex pt-16 h-screen overflow-hidden">
-                <div className={`hidden md:block h-full transition-all duration-300 border-r border-gray-100 dark:border-gray-800 ${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0`}>
+            <div className="flex pt-16 min-h-screen overflow-hidden">
+                <div className={`hidden md:block transition-all duration-300 border-r border-gray-100 dark:border-gray-800 ${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0 md:self-start`}>
                     <AppSidebar
                         activeSection={activeSection}
                         collapsed={sidebarCollapsed}
@@ -194,7 +214,7 @@ export function JoinRequest() {
                             </div>
                         </div>
 
-                        <Tabs defaultValue="requests" className="w-full">
+                        <Tabs className="w-full" defaultValue="requests">
                             <TabsList className="grid w-full max-w-[400px] grid-cols-2 mb-8 mx-auto md:mx-0">
                                 <TabsTrigger value="requests">Solicitudes ({joinRequests.length})</TabsTrigger>
                                 <TabsTrigger value="members">Miembros ({members.length})</TabsTrigger>
@@ -209,7 +229,7 @@ export function JoinRequest() {
                                     <div className="mt-12 flex flex-col items-center justify-center py-16 px-4 bg-white/50 dark:bg-gray-800/50 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700 backdrop-blur-sm">
                                         <div className="h-20 w-20 bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center mb-6 shadow-sm">
                                             <svg className="w-10 h-10 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} />
                                             </svg>
                                         </div>
                                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No hay solicitudes pendientes</h3>
@@ -222,11 +242,11 @@ export function JoinRequest() {
                                                 <div className="p-6">
                                                     <div className="flex items-center space-x-4">
                                                         <Avatar className="h-16 w-16 border-2 border-gray-200">
-                                                            <AvatarImage src={request.user.profile?.profilePhotoUrl ?? DEFAULT_PROFILE_IMG} className="object-cover" />
+                                                            <AvatarImage className="object-cover" src={request.user.profile?.profilePhotoUrl ?? DEFAULT_PROFILE_IMG} />
                                                             <AvatarFallback>{request.user.email[0].toUpperCase()}</AvatarFallback>
                                                         </Avatar>
                                                         <div className="flex-1 min-w-0">
-                                                            <h3 onClick={() => handleViewProfile(request.user.id)} className="text-lg font-bold text-gray-900 dark:text-white truncate cursor-pointer hover:text-purple-600 hover:underline">
+                                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate cursor-pointer hover:text-purple-600 hover:underline" onClick={() => handleViewProfile(request.user.id)}>
                                                                 {request.user.profile?.firstName} {request.user.profile?.lastName}
                                                             </h3>
                                                             <p className="text-sm text-gray-500 truncate">{request.user.email}</p>
@@ -235,7 +255,7 @@ export function JoinRequest() {
                                                     </div>
                                                 </div>
                                                 <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700 flex gap-3">
-                                                    <Button variant="outline" className="flex-1 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700" onClick={() => handleReject(request.id)}>Rechazar</Button>
+                                                    <Button className="flex-1 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700" variant="outline" onClick={() => handleReject(request.id)}>Rechazar</Button>
                                                     <Button className="flex-1" onClick={() => handleApprove(request.id)}>Aprobar</Button>
                                                 </div>
                                             </div>
@@ -257,11 +277,11 @@ export function JoinRequest() {
                                             <div key={member.userId} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col">
                                                 <div className="flex items-center space-x-4 mb-4">
                                                     <Avatar className="h-14 w-14 border border-gray-200">
-                                                        <AvatarImage src={member.user.profile?.profilePhotoUrl ?? DEFAULT_PROFILE_IMG} className="object-cover" />
+                                                        <AvatarImage className="object-cover" src={member.user.profile?.profilePhotoUrl ?? DEFAULT_PROFILE_IMG} />
                                                         <AvatarFallback>{member.user.email[0].toUpperCase()}</AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <h3 onClick={() => handleViewProfile(member.userId)} className="font-bold text-gray-900 dark:text-white cursor-pointer hover:text-purple-600 hover:underline">
+                                                        <h3 className="font-bold text-gray-900 dark:text-white cursor-pointer hover:text-purple-600 hover:underline" onClick={() => handleViewProfile(member.userId)}>
                                                             {member.user.profile ? `${member.user.profile.firstName} ${member.user.profile.lastName}` : "Unknown User"}
                                                         </h3>
                                                         <p className="text-sm text-gray-500">{member.user.email}</p>
@@ -271,10 +291,10 @@ export function JoinRequest() {
 
                                                 {isOwner && !member.isOwner && (
                                                     <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-2">
-                                                        <Button variant="destructive" size="sm" onClick={() => handleRemoveMember(member.userId)} title="Remove User">
+                                                        <Button size="sm" title="Remove User" variant="destructive" onClick={() => handleRemoveMember(member.userId)}>
                                                             <UserMinus className="w-4 h-4 mr-2" /> Remove
                                                         </Button>
-                                                        <Button variant="outline" size="sm" onClick={() => handleTransferOwnership(member.userId)} title="Transfer Ownership">
+                                                        <Button size="sm" title="Transfer Ownership" variant="outline" onClick={() => handleTransferOwnership(member.userId)}>
                                                             <ShieldCheck className="w-4 h-4 mr-2" /> Transfer
                                                         </Button>
                                                     </div>
