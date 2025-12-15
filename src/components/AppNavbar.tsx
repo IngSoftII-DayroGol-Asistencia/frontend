@@ -59,7 +59,7 @@ export function AppNavbar({ darkMode, toggleDarkMode, onLogout, onMobileMenuTogg
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
               <span className="text-white">N</span>
             </div>
-            <span className="hidden sm:block">Nexus</span>
+            <span className="hidden sm:block">Dayrosoft</span>
           </div>
 
           {/* Search Bar - Desktop */}
@@ -95,14 +95,6 @@ export function AppNavbar({ darkMode, toggleDarkMode, onLogout, onMobileMenuTogg
               onClick={toggleDarkMode}
             >
               {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </Button>
-
-            {/* Notifications */}
-            <Button className="rounded-lg relative" size="icon" variant="ghost">
-              <Bell className="w-5 h-5" />
-              <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 rounded-full bg-red-500 text-white border-2 border-white dark:border-gray-900">
-                3
-              </Badge>
             </Button>
 
             {/* Profile */}
