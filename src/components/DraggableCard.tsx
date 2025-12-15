@@ -4,14 +4,15 @@ import { Card, CardContent, CardHeader } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { MoreVertical, Pencil, Trash } from "lucide-react";
+import { MoreVertical, Pencil, Trash, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { CardResponse, CardPriority } from "../types/workboard.types";
+import { CardResponse } from "../types/workboard.types";
 import { useState } from "react";
 
 interface DraggableCardProps {
@@ -113,6 +114,11 @@ export function DraggableCard({
             >
               {card.priority}
             </Badge>
+
+            <div className="flex items-center text-xs text-muted-foreground">
+              <CalendarIcon className="w-3 h-3 mr-1" />
+              {card.due_date ? format(new Date(card.due_date), "MMM d") : "No date"}
+            </div>
 
             {card.assigned_to && (
               <div className="flex -space-x-2">

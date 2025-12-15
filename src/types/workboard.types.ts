@@ -93,7 +93,7 @@ export interface CardBase {
     priority: CardPriority;
     status: CardStatus;
     position: number;
-    due_date?: string;
+    due_date: string;
 }
 
 export interface CardCreate extends CardBase {

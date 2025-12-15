@@ -139,7 +139,7 @@ export function DashboardContent() {
         setIsCardModalOpen(true);
     };
 
-    const handleSubmitCard = async (data: { title: string; description: string; priority: CardPriority; }) => {
+    const handleSubmitCard = async (data: { title: string; description: string; priority: CardPriority; due_date: string; }) => {
         if (!board || !selectedListId) return;
 
         try {
@@ -151,6 +151,7 @@ export function DashboardContent() {
                     status: "todo" as any,
                     position: cardsByList[selectedListId]?.length || 0,
                     list_id: selectedListId,
+                    due_date: data.due_date,
                 };
 
                 const createdCard = await workboardService.createCard(newCard, DEFAULT_USER_ID);
@@ -166,6 +167,7 @@ export function DashboardContent() {
                         title: data.title,
                         description: data.description,
                         priority: data.priority,
+                        due_date: data.due_date,
                     },
                     DEFAULT_USER_ID,
                 );
@@ -420,6 +422,7 @@ export function DashboardContent() {
                             title: editingCard.title,
                             description: editingCard.description,
                             priority: editingCard.priority,
+                            due_date: editingCard.due_date,
                         } : undefined}
                     />
 

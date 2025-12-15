@@ -10,6 +10,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "./ui/select";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { cn } from "./ui/utils";
 import { CardPriority } from "../types/workboard.types";
 import { useEffect, useState } from "react";
 
@@ -20,6 +23,7 @@ interface CreateCardModalProps {
         title: string;
         description: string;
         priority: CardPriority;
+        due_date: string;
     }) => void;
     listName?: string;
     mode?: "create" | "edit";
@@ -27,6 +31,7 @@ interface CreateCardModalProps {
         title: string;
         description?: string;
         priority: CardPriority;
+        due_date: string;
     };
 }
 
@@ -41,6 +46,7 @@ export function CreateCardModal({
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [priority, setPriority] = useState<CardPriority>(CardPriority.MEDIUM);
+    const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
 
     // Sync form values when opening in edit mode
     useEffect(() => {
@@ -48,10 +54,12 @@ export function CreateCardModal({
             setTitle(initialData.title ?? "");
             setDescription(initialData.description ?? "");
             setPriority(initialData.priority ?? CardPriority.MEDIUM);
+            setDueDate(initialData.due_date ? new Date(initialData.due_date) : undefined);
         } else if (isOpen && !initialData) {
             setTitle("");
             setDescription("");
             setPriority(CardPriority.MEDIUM);
+            setDueDate(undefined);
         }
     }, [isOpen, initialData]);
 
@@ -60,17 +68,20 @@ export function CreateCardModal({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!title.trim()) return;
+        if (!dueDate) return; // Prevent submission if no date
 
         onSubmit({
             title: title.trim(),
             description: description.trim(),
             priority,
+            due_date: dueDate.toISOString(),
         });
 
         // Reset form
         setTitle("");
         setDescription("");
         setPriority(CardPriority.MEDIUM);
+        setDueDate(undefined);
         onClose();
     };
 
@@ -157,43 +168,61 @@ export function CreateCardModal({
                         />
                     </div>
 
-                    {/* Priority */}
-                    <div className="space-y-2">
-                        <Label htmlFor="priority">Priority</Label>
-                        <Select
-                            value={priority}
-                            onValueChange={(value: string) => setPriority(value as CardPriority)}
-                        >
-                            <SelectTrigger id="priority">
-                                <SelectValue placeholder="Select priority" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={CardPriority.LOW}>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-green-500" />
-                                        Low
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value={CardPriority.MEDIUM}>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                                        Medium
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value={CardPriority.HIGH}>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-orange-500" />
-                                        High
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value={CardPriority.URGENT}>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-red-500" />
-                                        Urgent
-                                    </div>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+                    {/* Priority & Due Date */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="priority">Priority</Label>
+                            <Select
+                                value={priority}
+                                onValueChange={(value: string) => setPriority(value as CardPriority)}
+                            >
+                                <SelectTrigger id="priority">
+                                    <SelectValue placeholder="Select priority" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={CardPriority.LOW}>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full bg-green-500" />
+                                            Low
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value={CardPriority.MEDIUM}>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                                            Medium
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value={CardPriority.HIGH}>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full bg-orange-500" />
+                                            High
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value={CardPriority.URGENT}>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full bg-red-500" />
+                                            Urgent
+                                        </div>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Due Date <span className="text-red-500">*</span></Label>
+                            <DatePicker
+                                selected={dueDate}
+                                onChange={(date) => setDueDate(date ?? undefined)}
+                                dateFormat="MMM d, yyyy"
+                                minDate={new Date()}
+                                className={cn(
+                                    "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+                                    !dueDate && "text-muted-foreground"
+                                )}
+                                placeholderText="Select due date"
+                                required
+                            />
+                        </div>
                     </div>
 
                     {/* Actions */}
