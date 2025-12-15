@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { useState, useEffect } from "react";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { useEffect, useState } from "react";
 import { authService } from "../api/services/auth.service";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../components/ui/alert-dialog";
 import type { UserProfileResponse } from "../interfaces/user";
-import { UserEnterpriseResponse } from "../interfaces/auth";
+import type { UserEnterpriseResponse } from "../interfaces/auth";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -65,7 +65,7 @@ export function LoginPage() {
         const userRelationEnterpriseStr = localStorage.getItem('userRelationEnterprise');
         if (userRelationEnterpriseStr) {
           const userRelationEnterprise: UserEnterpriseResponse = JSON.parse(userRelationEnterpriseStr) as UserEnterpriseResponse;
-          if (userRelationEnterprise.enterprises && userRelationEnterprise.enterprises.length === 0) {
+          if (userRelationEnterprise.enterprises?.length === 0) {
             void navigate('/no-enterprise');
             return;
           }
@@ -94,17 +94,17 @@ export function LoginPage() {
           <p className="text-muted-foreground">Sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
+              required
+              className="backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
               id="email"
+              placeholder="you@example.com"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
-              required
             />
             {errorEmail && <p className="text-red-600 text-sm">{errorEmail}</p>}
           </div>
@@ -113,25 +113,25 @@ export function LoginPage() {
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
               <button
-                type="button"
                 className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                type="button"
               >
                 Forgot?
               </button>
             </div>
             <Input
+              required
+              className="backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
               id="password"
+              placeholder="••••••••"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
-              required
             />
             {errorPassword && <p className="text-red-600 text-sm">{errorPassword}</p>}
           </div>
 
-          <Button type="submit" className="w-full">
+          <Button className="w-full" type="submit">
             Sign In
           </Button>
         </form>
@@ -140,8 +140,8 @@ export function LoginPage() {
           <p className="text-sm text-muted-foreground">
             Don&apos;t have an account?{' '}
             <button
-              onClick={() => navigate('/signup')}
               className="text-blue-600 dark:text-blue-400 hover:underline"
+              onClick={() => navigate('/signup')}
             >
               Sign up
             </button>

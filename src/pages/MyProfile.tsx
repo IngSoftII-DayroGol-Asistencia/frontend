@@ -1,16 +1,16 @@
 import type { ChangeEvent } from "react";
 import { useEffect, useState } from "react";
-import { AppNavbar } from "./AppNavbar";
+import { AppNavbar } from "../components/AppNavbar";
 import { authService } from "../api/services/auth.service";
-import { AppSidebar } from "./AppSidebar";
+import { AppSidebar } from "../components/AppSidebar";
 import type { Education, Experience, LanguageProficiency, Skill, UserProfileResponse } from "../interfaces/user";
 import { Calendar, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Post } from "./FeedContent";
-import { Card, CardHeader, CardContent } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Post } from "../contents/FeedContent";
+import { Card, CardHeader, CardContent } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 
 interface InlineInputProps {
     name: string;
@@ -43,7 +43,13 @@ const formatDateForInput = (isoDate: string | null | undefined): string => {
 };
 
 export function MyProfile() {
-    const [darkMode, setDarkMode] = useState(false);
+    const [darkMode, setDarkMode] = useState<boolean>(() => {
+        try {
+            return localStorage.getItem('darkMode') === 'true';
+        } catch (e) {
+            return false;
+        }
+    });
     const [activeSection, setActiveSection] = useState('feed');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -59,10 +65,24 @@ export function MyProfile() {
     const navigate = useNavigate();
 
     const handleSidebarNavigation = (section: string) => {
-        void navigate('/home', { state: { section: section } });
+        void navigate(`/home?section=${encodeURIComponent(section)}`);
     };
 
-    const toggleDarkMode = () => setDarkMode(!darkMode);
+    const toggleDarkMode = () => setDarkMode(prev => !prev);
+
+    useEffect(() => {
+        try {
+            if (darkMode) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('darkMode', 'false');
+            }
+        } catch (e) {
+            // ignore storage errors
+        }
+    }, [darkMode]);
     const toggleSidebarCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
     const toggleMobileSidebar = () => setMobileSidebarOpen(!mobileSidebarOpen);
 
@@ -265,7 +285,7 @@ export function MyProfile() {
     ];
 
     return (
-        <div className={`h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 ${darkMode ? 'dark' : ''}`}>
+        <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 ${darkMode ? 'dark' : ''}`}>
             <div className="fixed inset-0 z-0 overflow-hidden">
                 <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500 rounded-full opacity-100 test-animation" />
             </div>
@@ -277,8 +297,8 @@ export function MyProfile() {
                 onMobileMenuToggle={toggleMobileSidebar}
             />
 
-            <div className="flex-1 flex overflow-hidden pt-16">
-                <div className={`hidden md:block h-full transition-all duration-300 border-r border-white/20 dark:border-gray-700/50 ${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0`}>
+            <div className="flex-1 flex pt-16">
+                <div className={`hidden md:block relative z-10 md:self-start transition-all duration-300 border-r border-white/20 dark:border-gray-700/50 ${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0`}>
                     <AppSidebar
                         activeSection={activeSection}
                         collapsed={sidebarCollapsed}
@@ -345,7 +365,7 @@ export function MyProfile() {
                             </TabsList>
 
                             <TabsContent value="profile">
-                                <div className="flex flex-col md:flex-row w-full gap-4 justify-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-lg shadow-lg p-6 border border-white/20 dark:border-gray-700/50">
+                                <div className="flex flex-col md:flex-row w-full gap-4 justify-center bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-lg shadow-lg p-6 border border-white/20 dark:border-gray-700/50">
 
                                     {/* COLUMNA IZQUIERDA */}
                                     <div className="w-full md:w-1/2 flex flex-col gap-6">
@@ -376,7 +396,7 @@ export function MyProfile() {
                                             </div>
                                         </div>
 
-                                        {/* Emergency Contact */}
+            fle                         {/* Emergency Contact */}
                                         <div className="flex flex-col gap-2 w-full">
                                             <span className="text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-1"><strong>Emergency Contact:</strong></span>
                                             <div className="flex flex-col gap-2">

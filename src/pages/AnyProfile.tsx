@@ -1,18 +1,24 @@
 import { useEffect, useState } from "react";
-import { AppNavbar } from "./AppNavbar";
+import { AppNavbar } from "../components/AppNavbar";
 import { authService } from "../api/services/auth.service";
-import { AppSidebar } from "./AppSidebar";
+import { AppSidebar } from "../components/AppSidebar";
 import type { UserProfileResponse } from "../interfaces/user";
 import { Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Post } from "./FeedContent";
-import { Card, CardHeader, CardContent } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import type { Post } from "../contents/FeedContent";
+import { Card, CardContent, CardHeader } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 
 export function AnyProfile() {
-    const [darkMode, setDarkMode] = useState(false);
+    const [darkMode, setDarkMode] = useState<boolean>(() => {
+        try {
+            return localStorage.getItem('darkMode') === 'true';
+        } catch (e) {
+            return false;
+        }
+    });
     const [activeSection] = useState('feed');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -22,10 +28,24 @@ export function AnyProfile() {
     const navigate = useNavigate();
 
     const handleSidebarNavigation = (section: string) => {
-        void navigate('/home', { state: { section: section } });
+        void navigate(`/home?section=${encodeURIComponent(section)}`);
     };
 
-    const toggleDarkMode = () => setDarkMode(!darkMode);
+    const toggleDarkMode = () => setDarkMode(prev => !prev);
+
+    useEffect(() => {
+        try {
+            if (darkMode) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('darkMode', 'false');
+            }
+        } catch (e) {
+            // ignore storage errors
+        }
+    }, [darkMode]);
     const toggleSidebarCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
     const toggleMobileSidebar = () => setMobileSidebarOpen(!mobileSidebarOpen);
 
@@ -85,7 +105,7 @@ export function AnyProfile() {
     ];
 
     return (
-        <div className={`h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 ${darkMode ? 'dark' : ''}`}>
+        <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 ${darkMode ? 'dark' : ''}`}>
             <div className="fixed inset-0 z-0 overflow-hidden">
                 <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500 rounded-full opacity-100 test-animation" />
             </div>
@@ -97,8 +117,8 @@ export function AnyProfile() {
                 onMobileMenuToggle={toggleMobileSidebar}
             />
 
-            <div className="flex-1 flex overflow-hidden pt-16">
-                <div className={`hidden md:block h-full transition-all duration-300 border-r border-white/20 dark:border-gray-700/50 ${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0`}>
+            <div className="flex-1 flex pt-16">
+                <div className={`hidden md:block relative z-10 transition-all duration-300 border-r border-white/20 dark:border-gray-700/50 ${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0 md:self-start`}>
                     <AppSidebar
                         activeSection={activeSection}
                         collapsed={sidebarCollapsed}
@@ -132,7 +152,7 @@ export function AnyProfile() {
                     </div>
 
                     <div className="w-full max-w-4xl px-4">
-                        <Tabs defaultValue="profile" className="w-full">
+                        <Tabs className="w-full" defaultValue="profile">
                             <TabsList className="grid w-full grid-cols-2 mb-6">
                                 <TabsTrigger value="profile">Profile</TabsTrigger>
                                 <TabsTrigger value="posts">Posts</TabsTrigger>
@@ -306,7 +326,7 @@ export function AnyProfile() {
                                                             <div className="flex flex-wrap items-center gap-2">
                                                                 <h4 className="truncate">{post.author}</h4>
                                                                 {post.trending && (
-                                                                    <Badge variant="secondary" className="gap-1 shrink-0">
+                                                                    <Badge className="gap-1 shrink-0" variant="secondary">
                                                                         <span className="hidden sm:inline">Trending</span>
                                                                     </Badge>
                                                                 )}
@@ -321,7 +341,7 @@ export function AnyProfile() {
                                                 <p className="whitespace-pre-line mb-3 text-sm md:text-base">{post.content}</p>
                                                 <div className="flex flex-wrap gap-2">
                                                     {post.tags.map(tag => (
-                                                        <Badge key={tag} variant="outline" className="backdrop-blur-sm bg-blue-500/10 border-blue-500/20 text-xs">
+                                                        <Badge key={tag} className="backdrop-blur-sm bg-blue-500/10 border-blue-500/20 text-xs" variant="outline">
                                                             #{tag}
                                                         </Badge>
                                                     ))}

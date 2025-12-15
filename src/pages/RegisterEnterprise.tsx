@@ -1,14 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { authService } from "../api/services/auth.service";
-import { AppNavbar } from "./AppNavbar";
+import { ApiException } from "../api/client";
+import { AppNavbar } from "../components/AppNavbar";
 import { useNavigate } from "react-router-dom";
-import { Button } from "./ui/button";
+import { Button } from "../components/ui/button";
 import type { CreateEnterpriseInput } from "../interfaces/auth";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../components/ui/alert-dialog";
 
 export function RegisterEnterprise() {
 
-    const [darkMode, setDarkMode] = useState(false);
+    const [darkMode, setDarkMode] = useState<boolean>(() => {
+        try {
+            return localStorage.getItem('darkMode') === 'true';
+        } catch (e) {
+            return false;
+        }
+    });
 
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -31,7 +38,21 @@ export function RegisterEnterprise() {
         setErrorMessage(message);
     };
 
-    const toggleDarkMode = () => setDarkMode(!darkMode);
+    const toggleDarkMode = () => setDarkMode(prev => !prev);
+
+    useEffect(() => {
+        try {
+            if (darkMode) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('darkMode', 'false');
+            }
+        } catch (e) {
+            // ignore storage errors
+        }
+    }, [darkMode]);
     const toggleMobileSidebar = () => setMobileSidebarOpen(!mobileSidebarOpen);
 
     const navigate = useNavigate();
@@ -44,13 +65,19 @@ export function RegisterEnterprise() {
 
     const handleJoinSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-            await authService.joinEnterprise(joinId);
-            setHandleSuccess(true);
-            setSuccessMessage("Solititude had been sent to the enterprise admin!");
+        try {   
+                await authService.joinEnterprise(joinId);
+                setHandleSuccess(true);
+                setSuccessMessage("Solicitud enviada al administrador de la empresa.");
         } catch (error) {
-            console.error("Error joining enterprise:", error);
-            handleErrorsForm("Failed to join enterprise. Please try again.");
+                console.error("Error joining enterprise:", error);
+                if (error instanceof ApiException) {
+                    handleErrorsForm(error.message || "Failed to join enterprise.");
+                } else if ((error as any)?.message) {
+                    handleErrorsForm((error as any).message);
+                } else {
+                    handleErrorsForm("Failed to join enterprise. Please try again.");
+                }
         }
     };
 
@@ -85,7 +112,7 @@ export function RegisterEnterprise() {
             {/* Background Effects */}
             <div className="absolute inset-0 bg-gradient-to-br from-white-500/20 via-blue-500/20 to-purple-500/20 dark:from-green-600/30 dark:via-blue-600/30 dark:to-purple-600/30 pointer-events-none" />
             <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gray-500/30 rounded-full blur-3xl animate-pulse pointer-events-none" />
-            <div className="absolute bottom-1/3 left-1/4 w-64 h-64 bg-gray-500/30 rounded-full blur-3xl animate-pulse delay-75 pointer-events-none" />
+            <div className="absolute bottom-1/3 left-1/4 w-64 h-64 bg_gray-500/30 rounded-full blur-3xl animate-pulse delay-75 pointer-events-none" />
             <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-20 w-72 h-72 bg-purple-700 rounded-full opacity-100 test-animation" />
             </div>
@@ -113,7 +140,6 @@ export function RegisterEnterprise() {
                         </p>
                     </div>
 
-                    {/* VISTA 1: BOTONES INICIALES */}
                     {viewMode === 'initial' && (
                         <div className="flex flex-col md:flex-row w-full gap-4 justify-center py-4">
                             <div className="w-full md:w-1/2 flex flex-col gap-6">
@@ -136,7 +162,6 @@ export function RegisterEnterprise() {
                         </div>
                     )}
 
-                    {/* VISTA 2: FORMULARIO JOIN */}
                     {viewMode === 'join' && (
                         <form onSubmit={handleJoinSubmit} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                             <div className="space-y-2">
@@ -168,7 +193,6 @@ export function RegisterEnterprise() {
                         </form>
                     )}
 
-                    {/* VISTA 3: FORMULARIO CREATE */}
                     {viewMode === 'create' && (
                         <form onSubmit={handleCreateSubmit} className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
                             <div className="space-y-2">

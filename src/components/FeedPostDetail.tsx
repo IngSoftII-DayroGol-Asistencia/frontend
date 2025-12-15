@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Post } from "./FeedContent"; // Import shared Post type
+import { Post } from "../contents/FeedContent"; // Import shared Post type
 import { forumService } from "../api/services/forum.service";
 import { authService } from "../api/services/auth.service";
 import { Comment as ApiComment, ReactionStats } from "../interfaces/forum.types";

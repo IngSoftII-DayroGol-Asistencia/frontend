@@ -1,14 +1,20 @@
-import { useState, useEffect } from "react";
-import { AppNavbar } from "./AppNavbar";
-import { AppSidebar } from "./AppSidebar";
+import { useEffect, useState } from "react";
+import { AppNavbar } from "../components/AppNavbar";
+import { AppSidebar } from "../components/AppSidebar";
 import { authService } from "../api/services/auth.service";
 import { useNavigate } from "react-router-dom";
-import { Button } from "./ui/button";
-import { LogOut, AlertTriangle } from "lucide-react";
-import { UserEnterpriseResponse } from "../interfaces/auth";
+import { Button } from "../components/ui/button";
+import { AlertTriangle, LogOut } from "lucide-react";
+import type { UserEnterpriseResponse } from "../interfaces/auth";
 
 export function Settings() {
-    const [darkMode, setDarkMode] = useState(false);
+    const [darkMode, setDarkMode] = useState<boolean>(() => {
+        try {
+            return localStorage.getItem('darkMode') === 'true';
+        } catch (e) {
+            return false;
+        }
+    });
     const [activeSection] = useState('settings');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -24,7 +30,21 @@ export function Settings() {
         }
     }, []);
 
-    const toggleDarkMode = () => setDarkMode(!darkMode);
+    const toggleDarkMode = () => setDarkMode(prev => !prev);
+
+    useEffect(() => {
+        try {
+            if (darkMode) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('darkMode', 'false');
+            }
+        } catch (e) {
+            // ignore storage errors
+        }
+    }, [darkMode]);
     const toggleSidebarCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
     const toggleMobileSidebar = () => setMobileSidebarOpen(!mobileSidebarOpen);
 
@@ -34,11 +54,11 @@ export function Settings() {
     };
 
     const handleSidebarNavigation = (section: string) => {
-        void navigate('/home', { state: { section: section } });
+        void navigate(`/home?section=${encodeURIComponent(section)}`);
     };
 
     const handleLeaveEnterprise = async () => {
-        if (!confirm("Are you sure you want to leave this enterprise? You will lose access to all resources.")) return;
+        if (!confirm("Are you sure you want to leave this enterprise? You will lose access to all resources.")) {return;}
 
         try {
             await authService.leaveEnterprise();
@@ -62,8 +82,8 @@ export function Settings() {
                 onMobileMenuToggle={toggleMobileSidebar}
             />
 
-            <div className="flex pt-16 h-screen overflow-hidden">
-                <div className={`hidden md:block h-full transition-all duration-300 border-r border-gray-100 dark:border-gray-800 ${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0`}>
+            <div className="flex pt-16 min-h-screen overflow-hidden">
+                <div className={`hidden md:block transition-all duration-300 border-r border-gray-100 dark:border-gray-800 ${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0 md:self-start`}>
                     <AppSidebar
                         activeSection={activeSection}
                         collapsed={sidebarCollapsed}
@@ -94,7 +114,7 @@ export function Settings() {
                                         Owners must transfer ownership before leaving.
                                     </div>
                                 ) : (
-                                    <Button variant="destructive" onClick={handleLeaveEnterprise} className="whitespace-nowrap">
+                                    <Button className="whitespace-nowrap" variant="destructive" onClick={handleLeaveEnterprise}>
                                         <LogOut className="w-4 h-4 mr-2" />
                                         Leave Enterprise
                                     </Button>

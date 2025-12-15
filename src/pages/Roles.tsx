@@ -1,22 +1,22 @@
 import { useState, useEffect } from "react";
-import { AppNavbar } from "./AppNavbar";
+import { AppNavbar } from "../components/AppNavbar";
 import { authService } from "../api/services/auth.service";
-import { AppSidebar } from "./AppSidebar";
+import { AppSidebar } from "../components/AppSidebar";
 import { hasPermission } from "../utils/permissionUtils";
 import { useNavigate } from "react-router-dom";
 import { CreateRoleInput, GetRolesResponse, PermissionResponse } from "../interfaces/auth/roles.interface";
-import { Button } from "./ui/button"; // Assuming you have a Button component
-import { Input } from "./ui/input"; // Assuming Input component
-import { Textarea } from "./ui/textarea"; // Assuming Textarea
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "./ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Textarea } from "../components/ui/textarea";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "../components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { Users, UserPlus, Trash2 } from "lucide-react";
-import { Checkbox } from "./ui/checkbox";
-import { Label } from "./ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Checkbox } from "../components/ui/checkbox";
+import { Label } from "../components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { EnterpriseUserMembership } from "../interfaces/auth";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 
 const PERMISSION_DESCRIPTIONS: Record<string, string> = {
     READ: "Can view details but cannot make changes.",
@@ -27,30 +27,31 @@ const PERMISSION_DESCRIPTIONS: Record<string, string> = {
 };
 
 export function Roles() {
-    const [darkMode, setDarkMode] = useState(false);
+    const [darkMode, setDarkMode] = useState<boolean>(() => {
+        try {
+            return localStorage.getItem('darkMode') === 'true';
+        } catch (e) {
+            return false;
+        }
+    });
     const [activeSection] = useState('roles');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-    // activeTab is now managed by Tabs component mostly, but we might want to control it for the "Create First Role" button
     const [activeTab, setActiveTab] = useState("list");
 
-    // Data states
     const [roles, setRoles] = useState<GetRolesResponse>([]);
     const [permissions, setPermissions] = useState<PermissionResponse[]>([]);
     const [enterpriseUsers, setEnterpriseUsers] = useState<EnterpriseUserMembership[]>([]);
 
-    // Form states
     const [createRoleForm, setCreateRoleForm] = useState<CreateRoleInput>({ name: '', description: '', permissionIds: [] });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Assign Role State
     const [assignDialogOpen, setAssignDialogOpen] = useState(false);
     const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
     const [assignUserId, setAssignUserId] = useState('');
 
     const navigate = useNavigate();
 
-    // Permission checks
     const canAccess = hasPermission('ROLES', ['READ', 'UPDATE', 'MANAGE', 'CREATE', 'DELETE']);
     const canEdit = hasPermission('ROLES', ['MANAGE', 'UPDATE', 'CREATE', 'DELETE']);
     const canDeleteUserRole = hasPermission('ROLES', ['MANAGE']) && hasPermission('USERS', ['MANAGE']);
@@ -87,13 +88,11 @@ export function Roles() {
 
     const fetchEnterpriseUsers = async () => {
         try {
-            // Check localStorage first as requested
             const storedEnterprise = localStorage.getItem('myEnterprise');
             if (storedEnterprise) {
                 const parsed = JSON.parse(storedEnterprise) as { enterprise: { users: EnterpriseUserMembership[] } };
                 if (parsed.enterprise && parsed.enterprise.users) {
                     setEnterpriseUsers(parsed.enterprise.users);
-                    // Still fetch fresh data in background if needed, but for now this suffices as per instruction
                     return;
                 }
             }
@@ -115,10 +114,24 @@ export function Roles() {
     };
 
     const handleSidebarNavigation = (section: string) => {
-        void navigate('/home', { state: { section: section } });
+        void navigate(`/home?section=${encodeURIComponent(section)}`);
     };
 
-    const toggleDarkMode = () => setDarkMode(!darkMode);
+    const toggleDarkMode = () => setDarkMode(prev => !prev);
+
+    useEffect(() => {
+        try {
+            if (darkMode) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('darkMode', 'false');
+            }
+        } catch (e) {
+            // ignore storage errors
+        }
+    }, [darkMode]);
     const toggleSidebarCollapse = () => setSidebarCollapsed(!sidebarCollapsed);
     const toggleMobileSidebar = () => setMobileSidebarOpen(!mobileSidebarOpen);
 
@@ -127,7 +140,6 @@ export function Roles() {
         window.location.href = '/';
     };
 
-    // Create Role Handlers
     const handleCreateInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setCreateRoleForm(prev => ({ ...prev, [name]: value }));
@@ -149,7 +161,7 @@ export function Roles() {
         setIsSubmitting(true);
         try {
             await authService.createRolesEnterprise(createRoleForm);
-            await fetchRoles(); // Refresh list
+            await fetchRoles();
             setCreateRoleForm({ name: '', description: '', permissionIds: [] });
             setActiveTab('list');
         } catch (error) {
@@ -159,7 +171,6 @@ export function Roles() {
         }
     };
 
-    // Assign Role Handlers
     const openAssignDialog = (roleId: string) => {
         setSelectedRoleId(roleId);
         setAssignDialogOpen(true);
@@ -172,20 +183,18 @@ export function Roles() {
             setAssignDialogOpen(false);
             setAssignUserId('');
             setSelectedRoleId(null);
-            await fetchRoles(); // Update counts if necessary
+            await fetchRoles();
         } catch (error) {
             console.error("Error assigning role", error);
         }
     };
 
-    // Group permissions by resource for better UI
     const permissionsByResource = permissions.reduce((acc, perm) => {
         if (!acc[perm.resource]) acc[perm.resource] = [];
         acc[perm.resource].push(perm);
         return acc;
     }, {} as Record<string, PermissionResponse[]>);
 
-    // USERS PER ROLE TRAVERSAL
     const [roleUsersMap, setRoleUsersMap] = useState<Record<string, EnterpriseUserMembership[]>>({});
     const [viewUsersDialogOpen, setViewUsersDialogOpen] = useState(false);
     const [selectedRoleUsers, setSelectedRoleUsers] = useState<EnterpriseUserMembership[]>([]);
@@ -198,20 +207,15 @@ export function Roles() {
         }
     }, [enterpriseUsers]);
 
-    // ... fetchAllUserRoles ...
-
     const handleRemoveUserFromRole = async (userId: string) => {
         if (!currentViewRoleId) return;
         if (!confirm("Are you sure you want to remove this user from the role?")) return;
 
         try {
             await authService.deletePersonRole(currentViewRoleId, userId);
-            // Refresh logic:
-            // 1. Remove from local state for immediate feedback
             setSelectedRoleUsers(prev => prev.filter(u => u.userId !== userId));
-            // 2. Refetch in background to sync everything
             await fetchAllUserRoles();
-            await fetchRoles(); // Update counts
+            await fetchRoles();
         } catch (error) {
             console.error("Failed to remove user from role", error);
         }
@@ -228,20 +232,15 @@ export function Roles() {
         const map: Record<string, EnterpriseUserMembership[]> = {};
 
         try {
-            // Iterate all users to get their roles
-            // Optimization: Promise.all could be too heavy if many users, keeping it simple for now or batching could be better
-            // Given the requirement is explicit about iterating:
             const userRolePromises = enterpriseUsers.map(async (member) => {
                 try {
                     const userRoles = await authService.getRolesUser(member.userId);
-                    // Handle response being either array or object with roles array
                     const rolesList = Array.isArray(userRoles) ? userRoles : (userRoles as any).roles || [];
 
-                    rolesList.forEach((role: any) => { // using any to bypass type mismatch if interface is wrong
+                    rolesList.forEach((role: any) => {
                         if (!map[role.id]) {
                             map[role.id] = [];
                         }
-                        // Check if user already added to avoid dupes (though logic shouldn't produce dupes if map is fresh)
                         if (!map[role.id].some(u => u.userId === member.userId)) {
                             map[role.id].push(member);
                         }
@@ -258,11 +257,8 @@ export function Roles() {
         }
     };
 
-
-
     return (
         <div className={`h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 ${darkMode ? 'dark' : ''}`}>
-            {/* Background Effects */}
             <div className="absolute inset-0 bg-gradient-to-br from-white-500/20 via-blue-500/20 to-purple-500/20 dark:from-green-600/30 dark:via-blue-600/30 dark:to-purple-600/30 pointer-events-none" />
             <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gray-500/30 rounded-full blur-3xl animate-pulse pointer-events-none" />
             <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl animate-pulse delay-1000 pointer-events-none" />
@@ -274,10 +270,8 @@ export function Roles() {
                 onMobileMenuToggle={toggleMobileSidebar}
             />
 
-            {/* Main Flex Container */}
-            <div className="flex pt-16 h-screen overflow-hidden">
-                {/* Sidebar Container - Sticky/Fixed behavior handled via flex */}
-                <div className={`hidden md:block h-full transition-all duration-300 border-r border-white/20 dark:border-gray-700/50 ${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0`}>
+            <div className="flex pt-16 min-h-screen overflow-hidden">
+                <div className={`hidden md:block transition-all duration-300 border-r border-white/20 dark:border-gray-700/50 ${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0 md:self-start`}>
                     <AppSidebar
                         activeSection={activeSection}
                         collapsed={sidebarCollapsed}
@@ -286,7 +280,6 @@ export function Roles() {
                     />
                 </div>
 
-                {/* Main Content Area */}
                 <main className="flex-1 overflow-y-auto p-6 md:p-8 relative">
                     <div className="max-w-7xl mx-auto">
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -385,7 +378,6 @@ export function Roles() {
                                     <div className="p-8 w-full max-w-6xl mx-auto">
                                         <form onSubmit={handleCreateSubmit} className="space-y-6">
                                             <div className="flex flex-col lg:flex-row gap-8">
-                                                {/* LEFT COLUMN: Basic Info */}
                                                 <div className="w-full lg:w-1/3 space-y-6">
                                                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                                                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -434,7 +426,6 @@ export function Roles() {
                                                     </div>
                                                 </div>
 
-                                                {/* RIGHT COLUMN: Permissions */}
                                                 <div className="w-full lg:w-2/3 h-full">
                                                     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col h-[600px]">
                                                         <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50 rounded-t-xl">
@@ -534,7 +525,6 @@ export function Roles() {
                 </main>
             </div>
 
-            {/* Assign Role Dialog */}
             <AlertDialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
