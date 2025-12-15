@@ -38,15 +38,15 @@ class ForumService {
     }
 
     async createPost(orgId: string, data: CreatePostData): Promise<Post> {
-        const formData = new FormData();
-        formData.append('title', data.title);
-        formData.append('content', data.content);
-        formData.append('user_id', data.user_id);
-
+        const body = {
+            title: data.title,
+            content: data.content,
+            user_id: data.user_id,
+        };
 
         return this.request<Post>(`/orgs/${orgId}/forum/`, {
             method: 'POST',
-            body: formData,
+            body: JSON.stringify(body),
         });
     }
 

@@ -10,6 +10,7 @@ import type { Post } from "../contents/FeedContent";
 import { Card, CardContent, CardHeader } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { BigNamedUserInitial } from "../components/UserInitial";
 
 export function AnyProfile() {
     const [darkMode, setDarkMode] = useState<boolean>(() => {
@@ -133,12 +134,7 @@ export function AnyProfile() {
 
                     {/* Profile Photo */}
                     <div className="mb-1 relative group mt-16">
-                        <img
-                            alt="Profile"
-                            className="border-4 border-gray-300 dark:border-gray-600"
-                            src={profileData?.profilePhotoUrl ?? 'https://www.diariodemexico.com/sites/default/files/styles/max_width_770px/public/2024-02/ye.jpg?itok=vVaQ0qoK'}
-                            style={{ width: '300px', height: '300px', objectFit: 'cover', borderRadius: '50%' }}
-                        />
+                        <BigNamedUserInitial name={profileData?.firstName} />
                     </div>
 
                     <h1 className="text-gray-900 dark:text-white text-2xl mt-2">

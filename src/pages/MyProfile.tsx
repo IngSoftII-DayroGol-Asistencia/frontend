@@ -11,6 +11,7 @@ import { Post } from "../contents/FeedContent";
 import { Card, CardHeader, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { BigUserInitial } from "../components/UserInitial";
 
 interface InlineInputProps {
     name: string;
@@ -324,12 +325,7 @@ export function MyProfile() {
 
                     {/* Profile Photo */}
                     <div className="mb-1 relative group mt-16">
-                        <img
-                            alt="Profile"
-                            className="border-4 border-gray-300 dark:border-gray-600"
-                            src={profileData?.profilePhotoUrl ?? 'https://www.diariodemexico.com/sites/default/files/styles/max_width_770px/public/2024-02/ye.jpg?itok=vVaQ0qoK'}
-                            style={{ width: '300px', height: '300px', objectFit: 'cover', borderRadius: '50%' }}
-                        />
+                        <BigUserInitial />
                         {!isEditing && (
                             <button className="absolute bottom-2 right-2 bg-white dark:bg-gray-800 hover:bg-gray-100 p-2 rounded-full shadow-lg transition-all" onClick={handleEdit}>
                                 <Pencil className="w-5 h-5 text-gray-700 dark:text-gray-300" />

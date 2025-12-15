@@ -212,3 +212,23 @@ html {
 [data-slot="button"][aria-disabled="true"] {
   cursor: not-allowed;
 }
+
+.dark .bg-user-logo {
+  background-color: #262626;
+}
+.bg-user-logo {
+  background-color: #ececf0;
+}
+.dark .color-user-logo {
+  color: #fafafa;
+}
+.color-user-logo {
+  color: #262626;
+}
+.big-user-logo-size {
+  width: 300px;
+  height: 300px;
+}
+.big-user-logo-text {
+  font-size: 100px;
+}

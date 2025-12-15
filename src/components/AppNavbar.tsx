@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { Bell, Menu, Moon, Search, Sun } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Badge } from "./ui/badge";
+import { Menu, Moon, Search, Sun } from "lucide-react";
+import { UserInitial } from "./UserInitial";
 import { Button } from "./ui/button";
 import {
   DropdownMenu,
@@ -99,12 +98,9 @@ export function AppNavbar({ darkMode, toggleDarkMode, onLogout, onMobileMenuTogg
 
             {/* Profile */}
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger asChild>
                 <Button className="rounded-lg gap-2 px-2" variant="ghost">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop" />
-                    <AvatarFallback>JD</AvatarFallback>
-                  </Avatar>
+                  <UserInitial />
                   <span className="hidden lg:block">{profileData?.firstName ?? "User"}</span>
                 </Button>
               </DropdownMenuTrigger>

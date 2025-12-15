@@ -16,6 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
+import UserInitial from "../components/UserInitial";
 
 
 // Extended Post type for UI (merging API data with UI needs)
@@ -206,10 +207,7 @@ export function FeedContent() {
         <Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-white/20 dark:border-gray-700/50">
           <CardContent className="pt-4 md:pt-6">
             <div className="flex gap-2 md:gap-3" onClick={() => setCreateModalOpen(true)}>
-              <Avatar className="w-8 h-8 md:w-10 md:h-10 cursor-pointer">
-                <AvatarImage src={currentUser?.profilePhotoUrl || (currentUser?.userId ? getRandomAvatar(currentUser.userId) : undefined)} />
-                <AvatarFallback>{currentUser?.firstName?.[0] || "ME"}</AvatarFallback>
-              </Avatar>
+              <UserInitial />
               <div className="flex-1 px-3 md:px-4 py-2 rounded-lg backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border border-white/30 dark:border-gray-700/50 text-muted-foreground cursor-pointer hover:bg-white/60 dark:hover:bg-gray-800/60 transition-colors">
                 Share your thoughts...
               </div>

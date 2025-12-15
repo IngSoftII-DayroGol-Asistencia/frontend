@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Button } from "../components/ui/button";
 import { ShieldCheck, UserMinus } from "lucide-react";
+import { NamedUserInitial } from "../components/UserInitial";
 
 export function JoinRequest() {
     const [darkMode, setDarkMode] = useState<boolean>(() => {
@@ -241,10 +242,7 @@ export function JoinRequest() {
                                             <div key={request.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700 overflow-hidden">
                                                 <div className="p-6">
                                                     <div className="flex items-center space-x-4">
-                                                        <Avatar className="h-16 w-16 border-2 border-gray-200">
-                                                            <AvatarImage className="object-cover" src={request.user.profile?.profilePhotoUrl ?? DEFAULT_PROFILE_IMG} />
-                                                            <AvatarFallback>{request.user.email[0].toUpperCase()}</AvatarFallback>
-                                                        </Avatar>
+                                                        <NamedUserInitial name={request.user.profile?.firstName} />
                                                         <div className="flex-1 min-w-0">
                                                             <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate cursor-pointer hover:text-purple-600 hover:underline" onClick={() => handleViewProfile(request.user.id)}>
                                                                 {request.user.profile?.firstName} {request.user.profile?.lastName}
@@ -276,10 +274,7 @@ export function JoinRequest() {
                                         {members.map((member) => (
                                             <div key={member.userId} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col">
                                                 <div className="flex items-center space-x-4 mb-4">
-                                                    <Avatar className="h-14 w-14 border border-gray-200">
-                                                        <AvatarImage className="object-cover" src={member.user.profile?.profilePhotoUrl ?? DEFAULT_PROFILE_IMG} />
-                                                        <AvatarFallback>{member.user.email[0].toUpperCase()}</AvatarFallback>
-                                                    </Avatar>
+                                                    <NamedUserInitial name={member.user.profile?.firstName} />
                                                     <div>
                                                         <h3 className="font-bold text-gray-900 dark:text-white cursor-pointer hover:text-purple-600 hover:underline" onClick={() => handleViewProfile(member.userId)}>
                                                             {member.user.profile ? `${member.user.profile.firstName} ${member.user.profile.lastName}` : "Unknown User"}
