@@ -276,16 +276,6 @@ export function MessagesContent() {
         <div className="p-4 border-b border-white/20 dark:border-gray-700/50">
           <div className="flex items-center justify-between mb-3">
             <h2>Messages</h2>
-            <Button size="icon" variant="ghost">
-              <Plus className="w-5 h-5" />
-            </Button>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              className="pl-9 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
-              placeholder="Search people..."
-            />
           </div>
         </div>
 
@@ -365,45 +355,6 @@ export function MessagesContent() {
                 </div>
               </div>
             )}
-          </div>
-
-          <div className="flex items-center gap-1">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost">
-                    <Phone className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Start voice call</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost">
-                    <Video className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Start video call</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost">
-                    <Pin className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Pinned items</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <Button size="icon" variant="ghost">
-              <MoreHorizontal className="w-5 h-5" />
-            </Button>
           </div>
         </div>
 
