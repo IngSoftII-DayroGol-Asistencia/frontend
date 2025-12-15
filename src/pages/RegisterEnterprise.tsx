@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { authService } from "../api/services/auth.service";
+import { ApiException } from "../api/client";
 import { AppNavbar } from "../components/AppNavbar";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
@@ -64,13 +65,19 @@ export function RegisterEnterprise() {
 
     const handleJoinSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-            await authService.joinEnterprise(joinId);
-            setHandleSuccess(true);
-            setSuccessMessage("Solititude had been sent to the enterprise admin!");
+        try {   
+                await authService.joinEnterprise(joinId);
+                setHandleSuccess(true);
+                setSuccessMessage("Solicitud enviada al administrador de la empresa.");
         } catch (error) {
-            console.error("Error joining enterprise:", error);
-            handleErrorsForm("Failed to join enterprise. Please try again.");
+                console.error("Error joining enterprise:", error);
+                if (error instanceof ApiException) {
+                    handleErrorsForm(error.message || "Failed to join enterprise.");
+                } else if ((error as any)?.message) {
+                    handleErrorsForm((error as any).message);
+                } else {
+                    handleErrorsForm("Failed to join enterprise. Please try again.");
+                }
         }
     };
 

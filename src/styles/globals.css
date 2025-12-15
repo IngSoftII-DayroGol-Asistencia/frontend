@@ -196,6 +196,13 @@ html {
   height: 100vh;
 }
 
+.justify-content-left {
+  justify-content: left;
+}
+.justify-content-right {
+  justify-content: right;
+}
+
 /* Make Button components show pointer on hover; respect disabled state */
 [data-slot="button"] {
   cursor: pointer;

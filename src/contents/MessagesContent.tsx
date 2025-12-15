@@ -1,6 +1,9 @@
-import { useState } from "react";
-import { Search, Send, MoreHorizontal, Hash, Lock, Users, Plus, Phone, Video, Pin } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Hash, Lock, MoreHorizontal, Phone, Pin, Plus, Search, Send, Users, Video } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import type { Socket } from "socket.io-client";
+import { io } from "socket.io-client";
+import { authService } from "../api/services/auth.service";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -25,61 +28,239 @@ interface Message {
   avatar: string;
   content: string;
   time: string;
-  reactions?: { emoji: string; count: number }[];
 }
 
 export function MessagesContent() {
-  const [selectedChannel, setSelectedChannel] = useState<number>(1);
+  interface DMUser {
+    id: string;
+    userId: number;
+    name: string;
+    avatar?: string | null;
+    isMe?: boolean;
+  }
+
+  const [selectedChannel, setSelectedChannel] = useState<number | string>(1);
+  const [dmUsers, setDmUsers] = useState<DMUser[]>([]);
   const [messageText, setMessageText] = useState("");
   const [mobileShowChat, setMobileShowChat] = useState(false);
+  const socketRef = useRef<Socket | null>(null);
 
-  const channels: Channel[] = [
-    { id: 1, name: "general", type: "public", unread: 3, lastMessage: "Hey team! Meeting at 3pm", members: 24 },
-    { id: 2, name: "design-system", type: "public", lastMessage: "Updated the color palette", members: 12 },
-    { id: 3, name: "development", type: "public", unread: 7, lastMessage: "PR is ready for review", members: 18 },
-    { id: 4, name: "product-planning", type: "private", lastMessage: "Q1 roadmap discussion", members: 8 },
-    { id: 5, name: "Sarah Johnson", type: "dm", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop", online: true, lastMessage: "Thanks for the update!" },
-    { id: 6, name: "Michael Chen", type: "dm", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop", unread: 2, lastMessage: "Can we discuss the API changes?", online: true },
-    { id: 7, name: "Emily Rodriguez", type: "dm", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop", lastMessage: "Great work on the presentation!" },
-  ];
+  const channels: Channel[] = [];
+  interface ChatMessage {
+    id: string;
+    content: string;
+    author_id: string;
+    receiver_id: string;
+    createdAt: string;
+  }
 
-  const messages: Message[] = [
-    {
-      id: 1,
-      author: "Sarah Johnson",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-      content: "Hey team! Just wanted to remind everyone about our meeting at 3pm today. We'll be discussing the new feature roadmap.",
-      time: "10:30 AM",
-      reactions: [{ emoji: "👍", count: 5 }, { emoji: "✅", count: 3 }],
-    },
-    {
-      id: 2,
-      author: "Michael Chen",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
-      content: "Sounds good! I'll prepare the tech requirements document beforehand.",
-      time: "10:35 AM",
-    },
-    {
-      id: 3,
-      author: "Emily Rodriguez",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
-      content: "Perfect timing! I've just finished the user research analysis. Will share in the meeting.",
-      time: "10:42 AM",
-      reactions: [{ emoji: "🎉", count: 4 }],
-    },
-    {
-      id: 4,
-      author: "John Doe",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
-      content: "I'll join from the client site. Looking forward to it!",
-      time: "11:15 AM",
-    },
-  ];
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  const currentChannel = channels.find(c => c.id === selectedChannel);
+  const currentChannel: any =
+    typeof selectedChannel === "string"
+      ? dmUsers.find((u) => u.id === selectedChannel)
+      : channels.find((c) => c.id === selectedChannel);
+
+  const isDmSelected = typeof selectedChannel === "string";
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const stored = localStorage.getItem("myEnterprise") || localStorage.getItem("currentEnterprise");
+        const currentUserStr = localStorage.getItem("currentUser");
+        const currentUserObj = currentUserStr ? JSON.parse(currentUserStr) : null;
+        const myUserId = currentUserObj?.userId ?? currentUserObj?.id ?? null;
+
+        if (stored) {
+          const ent = JSON.parse(stored);
+          let users: any[] = [];
+          if (ent.enterprise && Array.isArray(ent.enterprise.users)) {
+            users = ent.enterprise.users;
+          } else if (Array.isArray(ent.users)) {
+            users = ent.users;
+          }
+          const mapped = await Promise.all(
+            users.map(async (m: any) => {
+              const userId = m.userId ?? m.user?.id ?? m.userId;
+              // prefer profile firstName/lastName, then username, then email local-part
+              let name = null;
+              const userObj = m.user || {};
+              if (userObj.profile && (userObj.profile.firstName || userObj.profile.lastName)) {
+                name = `${userObj.profile.firstName || ''} ${userObj.profile.lastName || ''}`.trim();
+              }
+              if (!name && userObj.username) {
+                name = userObj.username;
+              }
+              if (!name && userObj.email) {
+                name = userObj.email.split('@')[0];
+              }
+              let avatar = userObj.profile?.profilePhotoUrl || userObj.profilePhotoUrl || userObj.avatar || null;
+              try {
+                const profile = await authService.getUserProfile(String(userId));
+                if (profile?.data) {
+                  const pd = profile.data as any;
+                  if (!name) {
+                    if (pd.firstName || pd.lastName) {
+                      name = `${pd.firstName || ''} ${pd.lastName || ''}`.trim();
+                    } else if (pd.userName || pd.username) {
+                      name = pd.userName || pd.username;
+                    } else if ((pd).email) {
+                      name = (pd).email.split('@')[0];
+                    }
+                  }
+                  avatar = avatar || pd.profilePhotoUrl || (pd).profilePhotoUrl || null;
+                }
+              } catch (e) {}
+              if (!name) {name = `user${userId}`;}
+              return { id: `dm-${userId}`, userId, name, avatar, isMe: String(myUserId) === String(userId) } as DMUser;
+            })
+          );
+          setDmUsers(mapped);
+          return;
+        }
+
+        // fallback: call API
+        const res = await authService.getMyEnterprise();
+        const ent = res?.data;
+        if (ent?.users) {
+          const mapped = ent.users.map((m: any) => ({ id: `dm-${m.userId}`, userId: m.userId, name: m.user?.name || m.user?.email || `User ${m.userId}`, avatar: m.user?.avatar || null, isMe: myUserId === m.userId } as DMUser));
+          setDmUsers(mapped);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    load();
+  }, []);
+
+  // load conversation when a DM is selected
+  useEffect(() => {
+    const loadConversation = async () => {
+      if (!isDmSelected || !currentChannel) {
+        setMessages([]);
+        return;
+      }
+
+      try {
+        const currentUserStr = localStorage.getItem('currentUser');
+        const currentUserObj = currentUserStr ? JSON.parse(currentUserStr) : null;
+        const myId = currentUserObj?.userId ?? currentUserObj?.id ?? null;
+        const otherId = (currentChannel).userId ?? null;
+        if (!myId || !otherId) {return;}
+
+        const base = (import.meta.env.VITE_MS_CHAT).replace(/\/$/, '');
+        const url = `${base}/messages/conversation/${myId}/${otherId}`;
+        const res = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token') ?? ''}`,
+          },
+        });
+        if (!res.ok) {
+          console.error('Failed to fetch conversation', await res.text());
+          return;
+        }
+        const data = await res.json();
+        // expect array of {id, content, author_id, receiver_id, createdAt}
+        setMessages(data || []);
+        // scroll to bottom
+        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }), 50);
+      } catch (e) {
+        console.error('Error loading conversation', e);
+      }
+    };
+
+    void loadConversation();
+  }, [selectedChannel, isDmSelected, currentChannel]);
+
+  // Socket.IO connection: register chat_<myId> listener
+  useEffect(() => {
+    const currentUserStr = localStorage.getItem('currentUser');
+    const currentUserObj = currentUserStr ? JSON.parse(currentUserStr) : null;
+    const myId = currentUserObj?.userId ?? currentUserObj?.id ?? null;
+    if (!myId) {
+      console.warn('No currentUser found in localStorage for socket subscription');
+      return;
+    }
+
+    const WS_URL = import.meta.env.VITE_MS_CHAT;
+    const socket = io(WS_URL, {
+      path: '/socket.io',
+      transports: ['websocket'],
+      auth: { token: localStorage.getItem('token') },
+      autoConnect: true,
+    });
+    socketRef.current = socket;
+
+    const eventName = `chat_${myId}`;
+
+    socket.on('connect', () => {
+      console.log('WS connected', socket.id);
+    });
+
+    socket.on(eventName, (msg: any) => {
+      console.log('Received WS message on', eventName, msg);
+      try {
+        if (Array.isArray(msg)) {
+          setMessages(msg);
+        } else if (msg && typeof msg === 'object') {
+          // append single message
+          setMessages((prev) => [...prev, msg]);
+        }
+        // scroll to bottom after state update
+        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }), 50);
+      } catch (e) {
+        console.error('Error handling WS message', e);
+      }
+    });
+
+    socket.on('connect_error', (err: any) => {
+      console.error('WS connect_error', err);
+    });
+
+    return () => {
+      try {
+        socket.off(eventName);
+        socket.disconnect();
+      } catch (e) {}
+      socketRef.current = null;
+    };
+  }, []);
 
   const handleSendMessage = () => {
-    if (messageText.trim()) {
+    if (!messageText.trim()) {return;}
+
+    try {
+      const currentUserStr = localStorage.getItem('currentUser');
+      const currentUserObj = currentUserStr ? JSON.parse(currentUserStr) : null;
+      const myId = currentUserObj?.userId ?? currentUserObj?.id ?? null;
+
+      // if DM selected, extract receiver id
+      let receiverId: string | null = null;
+      if (isDmSelected && currentChannel?.userId) {
+        receiverId = String((currentChannel).userId);
+      }
+
+      const payload: any = {
+        content: messageText,
+        author_id: String(myId ?? ''),
+        receiver_id: receiverId ?? '',
+      };
+
+      // emit via socket if available
+      const socket = socketRef.current;
+      if (socket && socket.connected) {
+        socket.emit('message', payload, (ack: any) => {
+          console.log('message ack', ack);
+        });
+      } else {
+        console.warn('Socket not connected, message not sent via WS:', payload);
+      }
+
+      setMessageText("");
+    } catch (e) {
+      console.error('Error sending message:', e);
       setMessageText("");
     }
   };
@@ -102,76 +283,43 @@ export function MessagesContent() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search channels..."
               className="pl-9 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
+              placeholder="Search people..."
             />
           </div>
         </div>
 
         <ScrollArea className="flex-1">
           <div className="p-2 space-y-1">
-            <div className="px-3 py-2 text-xs text-muted-foreground">Channels</div>
-            {channels.filter(c => c.type !== "dm").map((channel) => (
-              <button
-                key={channel.id}
-                onClick={() => handleChannelSelect(channel.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${selectedChannel === channel.id
-                    ? "bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20"
-                    : "hover:bg-white/50 dark:hover:bg-gray-800/50"
-                  }`}
-              >
-                {channel.type === "public" ? (
-                  <Hash className="w-4 h-4 shrink-0 text-muted-foreground" />
-                ) : (
-                  <Lock className="w-4 h-4 shrink-0 text-muted-foreground" />
-                )}
-                <div className="flex-1 text-left min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm truncate">{channel.name}</span>
-                    {channel.unread && (
-                      <Badge className="h-5 min-w-5 px-1.5 bg-blue-500 text-white">
-                        {channel.unread}
-                      </Badge>
-                    )}
-                  </div>
-                  {channel.lastMessage && (
-                    <p className="text-xs text-muted-foreground truncate">{channel.lastMessage}</p>
-                  )}
-                </div>
-              </button>
-            ))}
-
             <div className="px-3 py-2 text-xs text-muted-foreground mt-4">Direct Messages</div>
-            {channels.filter(c => c.type === "dm").map((channel) => (
+            {dmUsers.map((user) => (
               <button
-                key={channel.id}
-                onClick={() => handleChannelSelect(channel.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${selectedChannel === channel.id
+                key={user.id}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${selectedChannel === user.id
                     ? "bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20"
                     : "hover:bg-white/50 dark:hover:bg-gray-800/50"
                   }`}
+                onClick={() => {
+                  setSelectedChannel(user.id);
+                  setMobileShowChat(true);
+                }}
               >
                 <div className="relative">
                   <Avatar className="w-8 h-8">
-                    <AvatarImage src={channel.avatar} />
-                    <AvatarFallback>{channel.name[0]}</AvatarFallback>
+                    <AvatarImage src={user.avatar || undefined} />
+                    <AvatarFallback>{user.name[0]}</AvatarFallback>
                   </Avatar>
-                  {channel.online && (
-                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full" />
-                  )}
+                  
                 </div>
                 <div className="flex-1 text-left min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm truncate">{channel.name}</span>
-                    {channel.unread && (
-                      <Badge className="h-5 min-w-5 px-1.5 bg-blue-500 text-white">
-                        {channel.unread}
-                      </Badge>
-                    )}
+                    <span className="text-sm truncate flex items-center gap-2">
+                      {user.name}
+                      {user.isMe && (
+                        <span className="inline-flex items-center text-xs text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-0.5 rounded-full">tú</span>
+                      )}
+                    </span>
                   </div>
-                  {channel.lastMessage && (
-                    <p className="text-xs text-muted-foreground truncate">{channel.lastMessage}</p>
-                  )}
                 </div>
               </button>
             ))}
@@ -183,24 +331,21 @@ export function MessagesContent() {
         <div className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-white/20 dark:border-gray-700/50 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70">
           <div className="flex items-center gap-3">
             <Button
-              variant="ghost"
-              size="icon"
               className="md:hidden"
+              size="icon"
+              variant="ghost"
               onClick={() => setMobileShowChat(false)}
             >
               <Hash className="w-5 h-5" />
             </Button>
-            {currentChannel?.type === "dm" ? (
+            {isDmSelected && currentChannel ? (
               <div className="flex items-center gap-3">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={currentChannel.avatar} />
+                  <AvatarImage src={currentChannel.avatar || undefined} />
                   <AvatarFallback>{currentChannel.name[0]}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="text-sm">{currentChannel.name}</h3>
-                  {currentChannel.online && (
-                    <p className="text-xs text-green-500">Active now</p>
-                  )}
+                  <h3 className="text-sm">{currentChannel.name} {currentChannel.isMe && <Badge className="ml-2 text-[10px]">tú</Badge>}</h3>
                 </div>
               </div>
             ) : (
@@ -226,7 +371,7 @@ export function MessagesContent() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button size="icon" variant="ghost">
                     <Phone className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
@@ -237,7 +382,7 @@ export function MessagesContent() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button size="icon" variant="ghost">
                     <Video className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
@@ -248,7 +393,7 @@ export function MessagesContent() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button size="icon" variant="ghost">
                     <Pin className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
@@ -256,7 +401,7 @@ export function MessagesContent() {
               </Tooltip>
             </TooltipProvider>
 
-            <Button variant="ghost" size="icon">
+            <Button size="icon" variant="ghost">
               <MoreHorizontal className="w-5 h-5" />
             </Button>
           </div>
@@ -264,62 +409,61 @@ export function MessagesContent() {
 
         <ScrollArea className="flex-1 p-4 md:p-6">
           <div className="max-w-4xl mx-auto space-y-4">
-            {messages.map((message, index) => {
-              const showAvatar = index === 0 || messages[index - 1].author !== message.author;
+            {messages.map((m, index) => {
+              const currentUserStr = localStorage.getItem('currentUser');
+              const currentUserObj = currentUserStr ? JSON.parse(currentUserStr) : null;
+              const myId = currentUserObj?.userId ?? currentUserObj?.id ?? null;
+              const isMine = String(m.author_id) === String(myId);
+              const dt = new Date(m.createdAt);
+              const time = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              const date = dt.toLocaleDateString();
+
+              // Use Tailwind classes with `dark:` variants so colors update automatically
+              // Do NOT add background colors (user requested no background change).
+              const baseBubble = 'max-w-[70%] p-3 rounded-lg break-words';
+              const mineText = 'text-gray-900 dark:text-gray-100';
+              const otherText = 'text-gray-900 dark:text-gray-100';
+
+              const bubbleClass = `${baseBubble} ${isMine ? `${mineText} rounded-br-none text-right` : `${otherText} rounded-bl-none text-left`}`;
+
+              // find sender info from dmUsers (if available)
+              const sender = dmUsers.find(
+                (u) => String(u.userId) === String(m.author_id) || u.id === `dm-${m.author_id}`
+              );
+              const senderAvatar = sender?.avatar || null;
+              const senderName = sender?.name || '';
 
               return (
-                <div key={message.id} className={`flex gap-3 ${showAvatar ? 'mt-4' : 'mt-1'}`}>
-                  <div className="w-10 shrink-0">
-                    {showAvatar && (
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={message.avatar} />
-                        <AvatarFallback>{message.author[0]}</AvatarFallback>
-                      </Avatar>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    {showAvatar && (
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-sm">{message.author}</span>
-                        <span className="text-xs text-muted-foreground">{message.time}</span>
-                      </div>
-                    )}
-                    <div className="group relative">
-                      <p className="text-sm">{message.content}</p>
-                      {message.reactions && (
-                        <div className="flex gap-1 mt-2">
-                          {message.reactions.map((reaction, i) => (
-                            <button
-                              key={i}
-                              className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border border-white/30 dark:border-gray-700/50 hover:border-blue-500/50 transition-colors"
-                            >
-                              <span>{reaction.emoji}</span>
-                              <span>{reaction.count}</span>
-                            </button>
-                          ))}
-                          <button className="opacity-0 group-hover:opacity-100 flex items-center px-2 py-0.5 rounded-full text-xs backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border border-white/30 dark:border-gray-700/50 hover:border-blue-500/50 transition-all">
-                            +
-                          </button>
-                        </div>
-                      )}
+                <div key={m.id} className={`flex ${isMine ? 'justify-content-right' : 'justify-content-left'}`}>
+                  <div className={`flex items-end gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
+                    
+                    <Avatar className="w-6 h-6">
+                      <AvatarImage src={senderAvatar || undefined} />
+                      <AvatarFallback>{senderName ? senderName[0] : '?'}</AvatarFallback>
+                    </Avatar>
+
+                    <div className={bubbleClass}>
+                      <p className="text-sm break-words">{m.content}</p>
+                      <div className="text-xs text-muted-foreground mt-1">{time} · {date}</div>
                     </div>
                   </div>
                 </div>
               );
             })}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
         <div className="p-4 md:p-6 border-t border-white/20 dark:border-gray-700/50 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70">
           <div className="max-w-4xl mx-auto flex gap-2">
             <Input
-              placeholder={`Message ${currentChannel?.type === 'dm' ? currentChannel.name : '#' + currentChannel?.name}`}
+              className="flex-1 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
+              placeholder={`Message ${isDmSelected && currentChannel ? currentChannel.name : `#${  currentChannel?.name}`}`}
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-              className="flex-1 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border-white/30 dark:border-gray-700/50"
             />
-            <Button onClick={handleSendMessage} size="icon">
+            <Button size="icon" onClick={handleSendMessage}>
               <Send className="w-4 h-4" />
             </Button>
           </div>
