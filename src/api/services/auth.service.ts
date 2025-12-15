@@ -76,7 +76,7 @@ export const authService ={
     },
     
     async joinEnterprise(enterpriseId: string): Promise<UserEnterpriseResponse> {
-        const response = await apiClient.post<UserEnterpriseResponse>(ENDPOINTS.auth.enterprise.joinEnterprise().url, enterpriseId);
+        const response = await apiClient.post<UserEnterpriseResponse>(ENDPOINTS.auth.enterprise.joinEnterprise().url, { enterpriseId });
         return response;
     }, 
 
